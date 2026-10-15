@@ -2,113 +2,172 @@ package model;
 
 import org.controller.ProductoController;
 import org.exception.ProductoNoEncontradoException;
+import org.model.Bebida;
+import org.model.Producto;
+import org.model.Size;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.model.Bebida;
-import org.model.Producto;
-import org.model.Size;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ProductoControllerTest {
 
-        private ProductoController productoController;
+    private ProductoController productoController;
 
-        @BeforeEach
-        void setUp() {
-            // Nueva instancia antes de cada test para que el catálogo (y sus ids)
-            // arranquen siempre desde el mismo estado inicial ("seed").
-            productoController = new ProductoController();
+    @BeforeEach
+    void setUp() {
+        // El controlador arranca vacío: los productos de prueba los crea el propio test.
+        productoController = new ProductoController();
+    }
+
+    private Producto bebida(String nombre, double precio) {
+        return new Bebida(0, nombre, precio, Size.PEQUENYA);
+    }
+
+    @Nested
+    @DisplayName("listarProducto()")
+    class ListarCatalogo {
+
+        @Test
+        @DisplayName("el catálogo está vacío al crear el controlador")
+        void catalogoInicialVacio() {
+            assertTrue(productoController.listarProducto().isEmpty());
         }
 
-        @Nested
-        @DisplayName("listarCatalogo()")
-        class ListarCatalogo {
+        @Test
+        @DisplayName("devuelve los productos agregados")
+        void devuelveProductosAgregados() {
+            productoController.agregarProducto(bebida("Agua", 1.5));
+            productoController.agregarProducto(bebida("Refresco", 2.0));
 
-            @Test
-            @DisplayName("el catálogo precargado tiene los 5 productos de ejemplo")
-            void catalogoInicialTieneCincoProductos() {
-                List<Producto> catalogo = productoController.listarProducto();
-                assertEquals(5, catalogo.size());
-            }
-
-            @Test
-            @DisplayName("devuelve una lista inmutable (no se puede modificar desde fuera)")
-            void listaEsInmutable() {
-                List<Producto> catalogo = productoController.listarProducto();
-                assertThrows(UnsupportedOperationException.class,
-                        () -> catalogo.add(new Bebida(0, "Intrusa", 1.0, Size.PEQUENYA)));
-            }
+            assertEquals(2, productoController.listarProducto().size());
         }
 
-        @Nested
-        @DisplayName("buscarPorId()")
-        class BuscarPorId {
+        @Test
+        @DisplayName("devuelve una lista inmutable (no se puede modificar desde fuera)")
+        void listaEsInmutable() {
+            List<Producto> catalogo = productoController.listarProducto();
+            assertThrows(UnsupportedOperationException.class,
+                    () -> catalogo.add(bebida("Intrusa", 1.0)));
+        }
+    }
 
-            @Test
-            @DisplayName("encuentra un producto existente del catálogo precargado")
-            void encuentraProductoExistente() throws ProductoNoEncontradoException {
-                Producto producto = productoController.buscarPorId(1);
-                assertEquals(1, producto.getId());
-                assertEquals("Margarita", producto.getNombre());
-            }
+    @Nested
+    @DisplayName("buscarPorId()")
+    class BuscarPorId {
 
-            @Test
-            @DisplayName("lanza ProductoNoEncontradoException si el id no existe")
-            void lanzaExcepcionSiNoExiste() {
-                assertThrows(ProductoNoEncontradoException.class,
-                        () -> productoController.buscarPorId(999));
-            }
+        @Test
+        @DisplayName("encuentra un producto existente")
+        void encuentraProductoExistente() throws ProductoNoEncontradoException {
+            Producto agregado = productoController.agregarProducto(bebida("Agua", 1.5));
+
+            Producto encontrado = productoController.buscarPorId(agregado.getId());
+
+            assertEquals("Agua", encontrado.getNombre());
         }
 
-        @Nested
-        @DisplayName("agregarProducto()")
-        class AgregarProducto {
-
-            @Test
-            @DisplayName("añade el producto al catálogo y le asigna un id autogenerado")
-            void agregaProductoConIdAutogenerado() {
-                Producto nuevo = new Bebida(0, "Cerveza sin alcohol", 2.20, Size.PEQUENYA);
-
-                Producto agregado = productoController.agregarProducto(nuevo);
-
-                // El catálogo precargado usa los ids 1-5, así que el siguiente debe ser 6
-                assertEquals(6, agregado.getId());
-                assertEquals(6, productoController.listarProducto().size());
-            }
-
-            @Test
-            @DisplayName("el producto agregado se puede volver a buscar por su nuevo id")
-            void productoAgregadoEsBuscable() throws ProductoNoEncontradoException {
-                Producto nuevo = new Bebida(0, "Cerveza sin alcohol", 2.20, Size.PEQUENYA);
-                Producto agregado = productoController.agregarProducto(nuevo);
-
-                Producto encontrado = productoController.buscarPorId(agregado.getId());
-
-                assertEquals("Cerveza sin alcohol", encontrado.getNombre());
-            }
-
-            @Test
-            @DisplayName("ids autogenerados sucesivos son distintos e incrementales")
-            void idsSucesivosSonIncrementales() {
-                Producto p1 = productoController.agregarProducto(new Bebida(0, "Bebida A", 1.0, Size.PEQUENYA));
-                Producto p2 = productoController.agregarProducto(new Bebida(0, "Bebida B", 1.0, Size.PEQUENYA));
-
-                assertEquals(6, p1.getId());
-                assertEquals(7, p2.getId());
-                assertNotEquals(p1.getId(), p2.getId());
-            }
-
-            @Test
-            @DisplayName("lanza IllegalArgumentException si el producto es null")
-            void rechazaProductoNull() {
-                assertThrows(IllegalArgumentException.class,
-                        () -> productoController.agregarProducto(null));
-            }
+        @Test
+        @DisplayName("lanza ProductoNoEncontradoException si el id no existe")
+        void lanzaExcepcionSiNoExiste() {
+            assertThrows(ProductoNoEncontradoException.class,
+                    () -> productoController.buscarPorId(999));
         }
+    }
+
+    @Nested
+    @DisplayName("agregarProducto()")
+    class AgregarProducto {
+
+        @Test
+        @DisplayName("añade el producto al catálogo y le asigna un id autogenerado")
+        void agregaProductoConIdAutogenerado() {
+            Producto agregado = productoController.agregarProducto(bebida("Cerveza sin alcohol", 2.20));
+
+            assertEquals(1, agregado.getId());
+            assertEquals(1, productoController.listarProducto().size());
+        }
+
+        @Test
+        @DisplayName("ids autogenerados sucesivos son distintos e incrementales")
+        void idsSucesivosSonIncrementales() {
+            Producto p1 = productoController.agregarProducto(bebida("Bebida A", 1.0));
+            Producto p2 = productoController.agregarProducto(bebida("Bebida B", 1.0));
+
+            assertEquals(1, p1.getId());
+            assertEquals(2, p2.getId());
+            assertNotEquals(p1.getId(), p2.getId());
+        }
+
+        @Test
+        @DisplayName("lanza IllegalArgumentException si el producto es null")
+        void rechazaProductoNull() {
+            assertThrows(IllegalArgumentException.class,
+                    () -> productoController.agregarProducto(null));
+        }
+    }
+
+    @Nested
+    @DisplayName("actualizarProducto()")
+    class ActualizarProducto {
+
+        @Test
+        @DisplayName("sustituye el producto existente por el actualizado, conservando el id")
+        void actualizaProductoExistente() throws ProductoNoEncontradoException {
+            Producto original = productoController.agregarProducto(bebida("Agua", 1.5));
+            Producto actualizado = new Bebida(original.getId(), "Agua con gas", 1.8, Size.MEDIANA);
+
+            productoController.actualizarProducto(actualizado);
+
+            Producto encontrado = productoController.buscarPorId(original.getId());
+            assertEquals("Agua con gas", encontrado.getNombre());
+            assertEquals(1.8, encontrado.getPrecio(), 0.001);
+            assertEquals(1, productoController.listarProducto().size());
+        }
+
+        @Test
+        @DisplayName("lanza ProductoNoEncontradoException si el producto no existe")
+        void rechazaProductoInexistente() {
+            Producto inexistente = new Bebida(999, "Fantasma", 1.0, Size.PEQUENYA);
+
+            assertThrows(ProductoNoEncontradoException.class,
+                    () -> productoController.actualizarProducto(inexistente));
+        }
+
+        @Test
+        @DisplayName("lanza IllegalArgumentException si el producto es null")
+        void rechazaProductoNull() {
+            assertThrows(IllegalArgumentException.class,
+                    () -> productoController.actualizarProducto(null));
+        }
+    }
+
+    @Nested
+    @DisplayName("eliminarProducto()")
+    class EliminarProducto {
+
+        @Test
+        @DisplayName("elimina el producto del catálogo")
+        void eliminaProductoExistente() throws ProductoNoEncontradoException {
+            Producto p1 = productoController.agregarProducto(bebida("Agua", 1.5));
+            Producto p2 = productoController.agregarProducto(bebida("Refresco", 2.0));
+
+            productoController.eliminarProducto(p1.getId());
+
+            assertEquals(1, productoController.listarProducto().size());
+            assertThrows(ProductoNoEncontradoException.class,
+                    () -> productoController.buscarPorId(p1.getId()));
+            assertEquals(p2, productoController.buscarPorId(p2.getId()));
+        }
+
+        @Test
+        @DisplayName("lanza ProductoNoEncontradoException si el producto no existe")
+        void rechazaProductoInexistente() {
+            assertThrows(ProductoNoEncontradoException.class,
+                    () -> productoController.eliminarProducto(999));
+        }
+    }
 }

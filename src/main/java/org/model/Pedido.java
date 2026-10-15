@@ -8,7 +8,6 @@ import java.util.Objects;
 public class Pedido {
     private int id;
     private Date fecha;
-    private float precioTotal;
     private EstadoPedido estado;
     private final List<LineaPedido> lineas = new ArrayList<>();
     private Pagable pagable;
@@ -19,7 +18,6 @@ public class Pedido {
         this.id = id;
         this.fecha = fecha;
         this.estado = EstadoPedido.PENDIENTE;
-        this.precioTotal = 0f;
         this.cliente = Objects.requireNonNull(cliente);
     }
 
@@ -29,17 +27,18 @@ public class Pedido {
         }
         lineas.add(linea);
         linea.setPedido(this);
-        recalcularPrecioTotal();
     }
 
-    private void recalcularPrecioTotal() {
-        this.precioTotal = (float) lineas.stream()
+    public double calcularPrecioTotal() {
+         return lineas.stream()
                 .mapToDouble(LineaPedido::getSubtotal)
                 .sum();
     }
 
     public void pagar() {
-        pagable.pagar(precioTotal);
+        if(pagable == null){throw  new IllegalStateException("");}
+        pagable.pagar(calcularPrecioTotal());
+        this.estado = EstadoPedido.FINALIZADO;
     }
 
     public int getId() {
@@ -56,14 +55,6 @@ public class Pedido {
 
     public void setFecha(Date fecha) {
         this.fecha = fecha;
-    }
-
-    public float getPrecioTotal() {
-        return precioTotal;
-    }
-
-    public void setPrecioTotal(float precioTotal) {
-        this.precioTotal = precioTotal;
     }
 
     public EstadoPedido getEstado() {
@@ -90,13 +81,15 @@ public class Pedido {
         return cliente;
     }
 
+    public double getPrecioTotal() {return calcularPrecioTotal();}
+
 
     @Override
     public String toString() {
         return "Pedido{" +
                 "id=" + id +
                 ", fecha=" + fecha +
-                ", precioTotal=" + precioTotal +
+                ", precioTotal=" + calcularPrecioTotal() +
                 ", estado=" + estado +
                 ", lineas=" + lineas.size() +
                 '}';

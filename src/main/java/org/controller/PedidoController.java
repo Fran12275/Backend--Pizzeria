@@ -23,24 +23,30 @@ public class PedidoController {
         this.productoController = productoController;
     }
 
-    public Pedido crearPedido(int clienteId) throws ClienteNoEncontradoException {
+    public LineaPedido addLineaPedido(int clienteId, int productoId, int cantidad)
+            throws ProductoNoEncontradoException, ClienteNoEncontradoException {
+        if (cantidad <= 0) { throw new IllegalArgumentException();}
         Cliente cliente = clienteController.buscarPorId(clienteId);
-        Pedido pedido = new Pedido(secuenciaPedidoId.getAndIncrement(),new Date(), cliente);
-        cliente.addPedido(pedido);
-        pedidos.add(pedido);
-        return pedido;
-    }
-
-    public LineaPedido addLineaPedido(int pedidoId, int productoId, int cantidad)
-        throws PedidoNoEncontradoException, ProductoNoEncontradoException {
-        Pedido pedido = buscarPorId(pedidoId);
         Producto producto = productoController.buscarPorId(productoId);
+
+        Pedido pedido = buscarPedidoPendiente(cliente);
+
+        if (pedido == null){
+            pedido = new Pedido(secuenciaPedidoId.getAndIncrement(), new Date(),cliente);
+            cliente.addPedido(pedido);
+            pedidos.add(pedido);
+        }
 
         LineaPedido linea = new LineaPedido(secuenciaLineaId.getAndIncrement(), cantidad, producto);
         pedido.agregarLinea(linea);
         return linea;
     }
-
+    public Pedido buscarPedidoPendiente(Cliente cliente){
+        return cliente.getPedidos().stream()
+                .filter(p -> p.getEstado() == EstadoPedido.PENDIENTE)
+                .findFirst()
+                .orElse(null);
+    }
     public Pedido buscarPorId(int id) throws PedidoNoEncontradoException {
         return pedidos.stream()
                 .filter(p ->p.getId() == id)
@@ -56,7 +62,13 @@ public class PedidoController {
     public List<Pedido> listarTodos() { return List.copyOf(pedidos);}
 
     public void pagarPedido(int pedidoId, Pagable metodoPago) throws PedidoNoEncontradoException {
+        if (metodoPago == null) {
+            throw new IllegalArgumentException("El método de pago no puede ser null");
+        }
         Pedido pedido = buscarPorId(pedidoId);
+        if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
+            throw new IllegalStateException("Solo se pueden pagar pedidos pendientes");
+        }
         if (pedido.getLineas().isEmpty()) {
             throw new IllegalStateException("No se puede pagar un pedido sin líneas");
         }

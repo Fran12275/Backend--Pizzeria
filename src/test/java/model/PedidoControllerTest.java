@@ -1,6 +1,5 @@
 package model;
 
-
 import org.controller.ClienteController;
 import org.controller.PedidoController;
 import org.controller.ProductoController;
@@ -8,11 +7,19 @@ import org.exception.ClienteNoEncontradoException;
 import org.exception.ClienteYaExisteException;
 import org.exception.PedidoNoEncontradoException;
 import org.exception.ProductoNoEncontradoException;
+import org.model.Bebida;
+import org.model.Cliente;
+import org.model.EstadoPedido;
+import org.model.Ingrediente;
+import org.model.LineaPedido;
+import org.model.Pagable;
+import org.model.Pedido;
+import org.model.Pizza;
+import org.model.Size;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.model.*;
 
 import java.util.List;
 
@@ -23,12 +30,22 @@ class PedidoControllerTest {
     private ClienteController clienteController;
     private PedidoController pedidoController;
     private int clienteId;
+    private int margaritaId;   // 8.50 €
+    private int aguaId;        // 1.50 €
 
     @BeforeEach
     void setUp() throws ClienteYaExisteException {
         clienteController = new ClienteController();
         ProductoController productoController = new ProductoController();
         pedidoController = new PedidoController(clienteController, productoController);
+
+        // Los productos de prueba los crea el test; el controlador no trae nada precargado.
+        Ingrediente tomate = new Ingrediente(1, "Tomate", 100, true);
+        Ingrediente mozzarella = new Ingrediente(2, "Mozzarella", 100, false);
+        margaritaId = productoController.agregarProducto(
+                new Pizza(0, "Margarita", 8.5, Size.PEQUENYA, List.of(tomate, mozzarella))).getId();
+        aguaId = productoController.agregarProducto(
+                new Bebida(0, "Agua 50cl", 1.5, Size.PEQUENYA)).getId();
 
         Cliente cliente = clienteController.registrar(new Cliente(0, "12345678A", "Ana García",
                 "Calle Falsa 123", "600111222", "ana@test.com", "password123"));
@@ -49,88 +66,106 @@ class PedidoControllerTest {
     }
 
     @Nested
-    @DisplayName("crearPedido()")
-    class CrearPedido {
+    @DisplayName("addLineaPedido()")
+    class AddLineaPedido {
 
         @Test
-        @DisplayName("crea un pedido vacío asociado al cliente, en estado PENDIENTE")
-        void creaPedidoVacio() throws ClienteNoEncontradoException {
-            Pedido pedido = pedidoController.crearPedido(clienteId);
+        @DisplayName("sin pedido pendiente crea un pedido nuevo en estado PENDIENTE asociado al cliente")
+        void creaPedidoNuevoSiNoHayPendiente() throws Exception {
+            assertTrue(pedidoController.listarTodos().isEmpty());
 
+            LineaPedido linea = pedidoController.addLineaPedido(clienteId, margaritaId, 2);
+            Pedido pedido = linea.getPedido();
+
+            assertEquals(1, pedidoController.listarTodos().size());
             assertEquals(clienteId, pedido.getCliente().getId());
-            assertTrue(pedido.getLineas().isEmpty());
-            assertEquals(0f, pedido.getPrecioTotal());
             assertEquals(EstadoPedido.PENDIENTE, pedido.getEstado());
+            assertEquals(1, pedido.getLineas().size());
+            assertEquals(2, linea.getCantidad());
+            assertEquals(17.0, pedido.getPrecioTotal(), 0.001);
         }
 
         @Test
         @DisplayName("el pedido creado queda registrado también dentro del cliente")
-        void pedidoQuedaAsociadoAlCliente() throws ClienteNoEncontradoException {
-            Pedido pedido = pedidoController.crearPedido(clienteId);
+        void pedidoQuedaAsociadoAlCliente() throws Exception {
+            Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
             Cliente cliente = clienteController.buscarPorId(clienteId);
 
             assertTrue(cliente.getPedidos().contains(pedido));
         }
 
         @Test
-        @DisplayName("lanza ClienteNoEncontradoException si el cliente no existe")
-        void rechazaClienteInexistente() {
-            assertThrows(ClienteNoEncontradoException.class,
-                    () -> pedidoController.crearPedido(999));
-        }
+        @DisplayName("con pedido pendiente añade la línea a ese mismo pedido, sin crear otro")
+        void reutilizaPedidoPendiente() throws Exception {
+            Pedido primero = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
+            Pedido segundo = pedidoController.addLineaPedido(clienteId, aguaId, 2).getPedido();
 
-        @Test
-        @DisplayName("asigna ids incrementales a pedidos sucesivos")
-        void asignaIdsIncrementales() throws ClienteNoEncontradoException {
-            Pedido p1 = pedidoController.crearPedido(clienteId);
-            Pedido p2 = pedidoController.crearPedido(clienteId);
-
-            assertEquals(1, p1.getId());
-            assertEquals(2, p2.getId());
-        }
-    }
-
-    @Nested
-    @DisplayName("addLineaPedido()")
-    class AddLineaPedido {
-
-        @Test
-        @DisplayName("añade la línea y recalcula el precio total del pedido")
-        void addLineaRecalculaPrecioTotal() throws Exception {
-            Pedido pedido = pedidoController.crearPedido(clienteId);
-            // Producto id=1 precargado en ProductoController: "Margarita", 8.50€
-            LineaPedido linea = pedidoController.addLineaPedido(pedido.getId(), 1, 2);
-
-            assertEquals(1, pedido.getLineas().size());
-            assertEquals(2, linea.getCantidad());
-            assertEquals(17.0f, pedido.getPrecioTotal(), 0.001);
+            assertSame(primero, segundo);
+            assertEquals(1, pedidoController.listarTodos().size());
+            assertEquals(2, primero.getLineas().size());
         }
 
         @Test
         @DisplayName("varias líneas se acumulan en el precio total")
         void variasLineasAcumulanPrecioTotal() throws Exception {
-            Pedido pedido = pedidoController.crearPedido(clienteId);
-            pedidoController.addLineaPedido(pedido.getId(), 1, 1); // Margarita 8.50€
-            pedidoController.addLineaPedido(pedido.getId(), 4, 2); // Agua 50cl 1.50€ x2
+            pedidoController.addLineaPedido(clienteId, margaritaId, 1);                     // 8.50 €
+            Pedido pedido = pedidoController.addLineaPedido(clienteId, aguaId, 2).getPedido(); // 1.50 € x2
 
-            assertEquals(2, pedido.getLineas().size());
-            assertEquals(11.50f, pedido.getPrecioTotal(), 0.001);
+            assertEquals(11.50, pedido.getPrecioTotal(), 0.001);
+            assertEquals(11.50, pedido.calcularPrecioTotal(), 0.001);
         }
 
         @Test
-        @DisplayName("lanza PedidoNoEncontradoException si el pedido no existe")
-        void rechazaPedidoInexistente() {
-            assertThrows(PedidoNoEncontradoException.class,
-                    () -> pedidoController.addLineaPedido(999, 1, 1));
+        @DisplayName("si el pedido anterior ya está pagado (FINALIZADO) se crea un pedido nuevo")
+        void creaPedidoNuevoTrasPagarElAnterior() throws Exception {
+            Pedido primero = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
+            pedidoController.pagarPedido(primero.getId(), new PagableFalso());
+
+            Pedido segundo = pedidoController.addLineaPedido(clienteId, aguaId, 1).getPedido();
+
+            assertNotSame(primero, segundo);
+            assertEquals(2, segundo.getId());
+            assertEquals(EstadoPedido.PENDIENTE, segundo.getEstado());
+            assertEquals(1, segundo.getLineas().size());
+            assertEquals(2, pedidoController.listarPorCliente(clienteId).size());
         }
 
         @Test
-        @DisplayName("lanza ProductoNoEncontradoException si el producto no existe")
-        void rechazaProductoInexistente() throws ClienteNoEncontradoException {
-            Pedido pedido = pedidoController.crearPedido(clienteId);
+        @DisplayName("cada cliente tiene su propio pedido pendiente")
+        void pedidosPendientesIndependientesPorCliente() throws Exception {
+            Cliente otro = clienteController.registrar(new Cliente(0, "87654321B", "Carlos Ruiz",
+                    "Calle Otra 456", "600333444", "carlos@test.com", "password456"));
 
+            Pedido deAna = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
+            Pedido deCarlos = pedidoController.addLineaPedido(otro.getId(), aguaId, 1).getPedido();
+
+            assertNotSame(deAna, deCarlos);
+            assertEquals(1, deAna.getId());
+            assertEquals(2, deCarlos.getId());
+            assertEquals(2, pedidoController.listarTodos().size());
+        }
+
+        @Test
+        @DisplayName("lanza ClienteNoEncontradoException si el cliente no existe")
+        void rechazaClienteInexistente() {
+            assertThrows(ClienteNoEncontradoException.class,
+                    () -> pedidoController.addLineaPedido(999, margaritaId, 1));
+        }
+
+        @Test
+        @DisplayName("lanza ProductoNoEncontradoException si el producto no existe y no deja un pedido vacío")
+        void rechazaProductoInexistente() {
             assertThrows(ProductoNoEncontradoException.class,
-                    () -> pedidoController.addLineaPedido(pedido.getId(), 999, 1));
+                    () -> pedidoController.addLineaPedido(clienteId, 999, 1));
+            assertTrue(pedidoController.listarTodos().isEmpty());
+        }
+
+        @Test
+        @DisplayName("lanza IllegalArgumentException si la cantidad no es positiva")
+        void rechazaCantidadNoPositiva() {
+            assertThrows(IllegalArgumentException.class,
+                    () -> pedidoController.addLineaPedido(clienteId, margaritaId, 0));
+            assertTrue(pedidoController.listarTodos().isEmpty());
         }
     }
 
@@ -141,8 +176,7 @@ class PedidoControllerTest {
         @Test
         @DisplayName("cobra el importe total del pedido a través del método de pago")
         void pagaElImporteTotal() throws Exception {
-            Pedido pedido = pedidoController.crearPedido(clienteId);
-            pedidoController.addLineaPedido(pedido.getId(), 1, 2); // 17.0€
+            Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 2).getPedido(); // 17.0€
 
             PagableFalso pagable = new PagableFalso();
             pedidoController.pagarPedido(pedido.getId(), pagable);
@@ -151,12 +185,32 @@ class PedidoControllerTest {
         }
 
         @Test
-        @DisplayName("lanza IllegalStateException si el pedido no tiene líneas")
-        void rechazaPedidoSinLineas() throws ClienteNoEncontradoException {
-            Pedido pedido = pedidoController.crearPedido(clienteId);
+        @DisplayName("tras pagar, el pedido pasa a FINALIZADO")
+        void pedidoPagadoQuedaFinalizado() throws Exception {
+            Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
+
+            pedidoController.pagarPedido(pedido.getId(), new PagableFalso());
+
+            assertEquals(EstadoPedido.FINALIZADO, pedido.getEstado());
+        }
+
+        @Test
+        @DisplayName("lanza IllegalStateException si el pedido ya estaba pagado")
+        void rechazaPedidoYaPagado() throws Exception {
+            Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
+            pedidoController.pagarPedido(pedido.getId(), new PagableFalso());
 
             assertThrows(IllegalStateException.class,
                     () -> pedidoController.pagarPedido(pedido.getId(), new PagableFalso()));
+        }
+
+        @Test
+        @DisplayName("lanza IllegalArgumentException si el método de pago es null")
+        void rechazaMetodoPagoNull() throws Exception {
+            Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> pedidoController.pagarPedido(pedido.getId(), null));
         }
 
         @Test
@@ -174,10 +228,10 @@ class PedidoControllerTest {
         @Test
         @DisplayName("encuentra un pedido existente")
         void encuentraPedidoExistente() throws Exception {
-            Pedido creado = pedidoController.crearPedido(clienteId);
+            Pedido creado = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
             Pedido encontrado = pedidoController.buscarPorId(creado.getId());
 
-            assertEquals(creado.getId(), encontrado.getId());
+            assertSame(creado, encontrado);
         }
 
         @Test
@@ -195,12 +249,18 @@ class PedidoControllerTest {
         @Test
         @DisplayName("listarPorCliente devuelve solo los pedidos de ese cliente")
         void listarPorClienteDevuelveSusPedidos() throws Exception {
-            pedidoController.crearPedido(clienteId);
-            pedidoController.crearPedido(clienteId);
+            Cliente otro = clienteController.registrar(new Cliente(0, "87654321B", "Carlos Ruiz",
+                    "Calle Otra 456", "600333444", "carlos@test.com", "password456"));
+
+            Pedido primero = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
+            pedidoController.pagarPedido(primero.getId(), new PagableFalso());
+            pedidoController.addLineaPedido(clienteId, aguaId, 1);   // segundo pedido de Ana
+            pedidoController.addLineaPedido(otro.getId(), aguaId, 1); // pedido de Carlos
 
             List<Pedido> pedidos = pedidoController.listarPorCliente(clienteId);
 
             assertEquals(2, pedidos.size());
+            assertTrue(pedidos.stream().allMatch(p -> p.getCliente().getId() == clienteId));
         }
 
         @Test
@@ -213,11 +273,11 @@ class PedidoControllerTest {
         @Test
         @DisplayName("listarTodos devuelve todos los pedidos creados, de cualquier cliente")
         void listarTodosDevuelveTodosLosPedidos() throws Exception {
-            Cliente otroCliente = clienteController.registrar(new Cliente(0, "87654321B", "Carlos Ruiz",
+            Cliente otro = clienteController.registrar(new Cliente(0, "87654321B", "Carlos Ruiz",
                     "Calle Otra 456", "600333444", "carlos@test.com", "password456"));
 
-            pedidoController.crearPedido(clienteId);
-            pedidoController.crearPedido(otroCliente.getId());
+            pedidoController.addLineaPedido(clienteId, margaritaId, 1);
+            pedidoController.addLineaPedido(otro.getId(), aguaId, 1);
 
             assertEquals(2, pedidoController.listarTodos().size());
         }
