@@ -1,8 +1,12 @@
 package org.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
 
 public class Pizza extends Producto{
     private Size size;
@@ -16,6 +20,14 @@ public class Pizza extends Producto{
         }
         this.ingredientes.addAll(ingredientes);
     }
+    @JsonCreator
+    public Pizza(@JsonProperty("nombre") String nombre,
+                 @JsonProperty("precio") double precio,
+                 @JsonProperty("size") Size size,
+                 @JsonProperty("ingredientes") List<Ingrediente> ingredientes) {
+        this(0, nombre, precio, size, ingredientes);
+    }
+
     public Size getSize() {
         return size;
     }

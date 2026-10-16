@@ -1,5 +1,9 @@
 package org.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 
 public class Ingrediente {
@@ -14,8 +18,16 @@ public class Ingrediente {
         this.stock = stock;
         this.esVegano = esVegano;
     }
+    @JsonCreator
+    public Ingrediente(@JsonProperty("nombre") String nombre,
+                       @JsonProperty("stock") int stock,
+                       @JsonProperty("esVegano") boolean esVegano) {
+        this(0, nombre, stock, esVegano);
+    }
 
+    @JsonIgnore
     public int getId() {return id;}
+    @JsonIgnore
     public void setId(int id) {this.id = id;}
 
     public String getNombre() {return nombre;}

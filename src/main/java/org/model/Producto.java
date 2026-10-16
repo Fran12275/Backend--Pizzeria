@@ -1,9 +1,24 @@
 package org.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import java.util.Objects;
 
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "tipo" // Este campo aparecerá en el JSON
+)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = Pizza.class, name = "pizza"),
+        @JsonSubTypes.Type(value = Bebida.class, name = "bebida"),
+        @JsonSubTypes.Type(value = Pasta.class, name = "pasta"),
+})
 public abstract class Producto {
 
+    @JsonIgnore
     private int id;
     private String nombre;
     private double precio;
@@ -46,6 +61,7 @@ public abstract class Producto {
         this.nombre = nombre;
     }
 
+    @JsonIgnore
     public abstract String getTipo();
 
     @Override
