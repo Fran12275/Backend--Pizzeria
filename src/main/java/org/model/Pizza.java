@@ -37,7 +37,7 @@ public class Pizza extends Producto{
     }
 
     public List<Ingrediente> getIngredientes() {
-        return ingredientes;
+        return List.copyOf(ingredientes);
     }
 
     public void addIngrediente(Ingrediente ingrediente) {

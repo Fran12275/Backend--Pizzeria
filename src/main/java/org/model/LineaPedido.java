@@ -16,7 +16,7 @@ public class LineaPedido {
     }
 
     public double getSubtotal(){
-        return this.producto.getPrecio() * (double)this.cantidad;
+        return this.producto.getPrecio() * this.cantidad;
     }
 
 

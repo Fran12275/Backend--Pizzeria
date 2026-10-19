@@ -32,7 +32,7 @@ public class Pasta extends Producto{
 
     public void setSize(Size size) {this.size = size;}
 
-    public List<Ingrediente> getIngredientes()  {return ingredientes;}
+    public List<Ingrediente> getIngredientes()  {return List.copyOf(ingredientes);}
     public void addIngrediente(Ingrediente ingrediente) {ingredientes.add(Objects.requireNonNull(ingrediente));}
 
     @Override

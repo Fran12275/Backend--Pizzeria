@@ -95,6 +95,16 @@ class PedidoControllerTest {
         }
 
         @Test
+        @DisplayName("las listas que devuelven getLineas() y getPedidos() no se pueden modificar desde fuera")
+        void listasDevueltasSonInmutables() throws Exception {
+            Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
+            Cliente cliente = clienteController.buscarPorId(clienteId);
+
+            assertThrows(UnsupportedOperationException.class, () -> pedido.getLineas().clear());
+            assertThrows(UnsupportedOperationException.class, () -> cliente.getPedidos().clear());
+        }
+
+        @Test
         @DisplayName("con pedido pendiente añade la línea a ese mismo pedido, sin crear otro")
         void reutilizaPedidoPendiente() throws Exception {
             Pedido primero = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();

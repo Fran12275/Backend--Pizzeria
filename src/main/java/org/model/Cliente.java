@@ -83,7 +83,7 @@ public class Cliente {
         this.password = password;
     }
 
-    public List<Pedido> getPedidos() {return pedidos;}
+    public List<Pedido> getPedidos() {return List.copyOf(pedidos);}
 
     @Override
     public boolean equals(Object o) {

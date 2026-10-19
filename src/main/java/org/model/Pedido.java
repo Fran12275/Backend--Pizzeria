@@ -61,12 +61,8 @@ public class Pedido {
         return estado;
     }
 
-    public void setEstado(EstadoPedido estado) {
-        this.estado = estado;
-    }
-
     public List<LineaPedido> getLineas() {
-        return lineas;
+        return List.copyOf(lineas);
     }
 
     public Pagable getPagable() {

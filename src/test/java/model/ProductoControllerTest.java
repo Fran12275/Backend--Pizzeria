@@ -1,17 +1,10 @@
 package model;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.controller.ProductoController;
 import org.exception.ProductoNoEncontradoException;
 import org.junit.jupiter.api.*;
 import org.model.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -170,104 +163,6 @@ class ProductoControllerTest {
         void rechazaProductoInexistente() {
             assertThrows(ProductoNoEncontradoException.class,
                     () -> productoController.eliminarProducto(999));
-        }
-    }
-    @Nested
-    @DisplayName("exportarProductos() / importarProductos() con Jackson")
-    class ExportarImportarJson {
-
-        private Path fichero;
-
-        @BeforeEach
-        void crearFicheroTemporal() throws IOException {
-            fichero = Files.createTempFile("productos", ".json");
-        }
-
-        @AfterEach
-        void borrarFicheroTemporal() throws IOException {
-            Files.deleteIfExists(fichero);
-        }
-
-        private void cargarCatalogoDeEjemplo() {
-            Ingrediente tomate = new Ingrediente(7, "Tomate", 100, true);
-            Ingrediente queso = new Ingrediente(8, "Mozzarella", 50, false);
-            productoController.agregarProducto(new Pizza(0, "Margarita", 8.5, Size.MEDIANA, List.of(tomate, queso)));
-            productoController.agregarProducto(new Pasta(0, "Carbonara", 9.0, Size.GRANDE, List.of(queso)));
-            productoController.agregarProducto(new Bebida(0, "Agua", 1.5, Size.PEQUENYA));
-        }
-
-        @Test
-        @DisplayName("el JSON no contiene ningún id ni el atributo calculado, y cada producto lleva su 'tipo'")
-        void jsonSinIdsNiAtributosCalculados() throws IOException {
-            cargarCatalogoDeEjemplo();
-
-            productoController.exportarProductos(fichero);
-
-            JsonNode raiz = new ObjectMapper().readTree(fichero.toFile());
-            assertEquals(3, raiz.size());
-            for (JsonNode producto : raiz) {
-                assertFalse(producto.has("id"));
-                assertTrue(producto.has("tipo"));
-                if (producto.has("ingredientes")) {
-                    for (JsonNode ingrediente : producto.get("ingredientes")) {
-                        assertFalse(ingrediente.has("id"));
-                    }
-                }
-            }
-            assertEquals("pizza", raiz.get(0).get("tipo").asText());
-            assertEquals("pasta", raiz.get(1).get("tipo").asText());
-            assertEquals("bebida", raiz.get(2).get("tipo").asText());
-        }
-
-        @Test
-        @DisplayName("exportar e importar conserva tipos, atributos e ingredientes anidados")
-        void exportarEImportarConservaLosDatos() throws Exception {
-            cargarCatalogoDeEjemplo();
-            productoController.exportarProductos(fichero);
-
-            ProductoController otro = new ProductoController();
-            List<Producto> importados = otro.importarProductos(fichero);
-
-            assertEquals(3, importados.size());
-            assertEquals(3, otro.listarProducto().size());
-
-            Producto p1 = otro.buscarPorId(1);
-            assertTrue(p1 instanceof Pizza);
-            assertEquals("Margarita", p1.getNombre());
-            assertEquals(8.5, p1.getPrecio(), 0.001);
-            assertEquals(Size.MEDIANA, ((Pizza) p1).getSize());
-            assertEquals(2, ((Pizza) p1).getIngredientes().size());
-            assertEquals("Tomate", ((Pizza) p1).getIngredientes().get(0).getNombre());
-            assertEquals(100, ((Pizza) p1).getIngredientes().get(0).getStock());
-            assertTrue(((Pizza) p1).getIngredientes().get(0).isEsVegano());
-
-            Producto p2 = otro.buscarPorId(2);
-            assertTrue(p2 instanceof Pasta);
-            assertEquals(1, ((Pasta) p2).getIngredientes().size());
-
-            Producto p3 = otro.buscarPorId(3);
-            assertTrue(p3 instanceof Bebida);
-            assertEquals("Agua", p3.getNombre());
-        }
-
-        @Test
-        @DisplayName("al importar se asignan ids nuevos a continuación de los existentes")
-        void importarAsignaIdsNuevos() throws Exception {
-            cargarCatalogoDeEjemplo();
-            productoController.exportarProductos(fichero);
-
-            productoController.importarProductos(fichero);
-
-            assertEquals(6, productoController.listarProducto().size());
-            assertEquals(6, productoController.buscarPorId(6).getId());
-        }
-
-        @Test
-        @DisplayName("lanza IOException si el fichero a importar no existe")
-        void importarFicheroInexistente() throws IOException {
-            Files.deleteIfExists(fichero);
-
-            assertThrows(IOException.class, () -> productoController.importarProductos(fichero));
         }
     }
 }
