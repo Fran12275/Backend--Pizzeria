@@ -33,7 +33,6 @@ public class PedidoController {
 
         if (pedido == null){
             pedido = new Pedido(secuenciaPedidoId.getAndIncrement(), new Date(),cliente);
-            cliente.addPedido(pedido);
             pedidos.add(pedido);
         }
 
@@ -42,7 +41,8 @@ public class PedidoController {
         return linea;
     }
     public Pedido buscarPedidoPendiente(Cliente cliente){
-        return cliente.getPedidos().stream()
+        return pedidos.stream()
+                .filter(p -> p.getCliente().equals(cliente))
                 .filter(p -> p.getEstado() == EstadoPedido.PENDIENTE)
                 .findFirst()
                 .orElse(null);
@@ -56,7 +56,9 @@ public class PedidoController {
 
     public List<Pedido> listarPorCliente(int clienteId) throws ClienteNoEncontradoException{
         Cliente cliente = clienteController.buscarPorId(clienteId);
-        return List.copyOf(cliente.getPedidos());
+        return pedidos.stream()
+                .filter(p -> p.getCliente().equals(cliente))
+                .toList();
     }
 
     public List<Pedido> listarTodos() { return List.copyOf(pedidos);}

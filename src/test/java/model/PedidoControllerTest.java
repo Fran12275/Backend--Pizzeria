@@ -86,22 +86,20 @@ class PedidoControllerTest {
         }
 
         @Test
-        @DisplayName("el pedido creado queda registrado también dentro del cliente")
+        @DisplayName("el pedido creado aparece en los pedidos del cliente")
         void pedidoQuedaAsociadoAlCliente() throws Exception {
             Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
-            Cliente cliente = clienteController.buscarPorId(clienteId);
 
-            assertTrue(cliente.getPedidos().contains(pedido));
+            assertTrue(pedidoController.listarPorCliente(clienteId).contains(pedido));
         }
 
         @Test
-        @DisplayName("las listas que devuelven getLineas() y getPedidos() no se pueden modificar desde fuera")
+        @DisplayName("las listas que devuelven getLineas() y listarPorCliente() no se pueden modificar desde fuera")
         void listasDevueltasSonInmutables() throws Exception {
             Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
-            Cliente cliente = clienteController.buscarPorId(clienteId);
 
             assertThrows(UnsupportedOperationException.class, () -> pedido.getLineas().clear());
-            assertThrows(UnsupportedOperationException.class, () -> cliente.getPedidos().clear());
+            assertThrows(UnsupportedOperationException.class, () -> pedidoController.listarPorCliente(clienteId).clear());
         }
 
         @Test

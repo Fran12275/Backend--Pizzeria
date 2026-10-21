@@ -3,8 +3,9 @@ package org.model;
 public class LineaPedido {
     private int id;
     private int cantidad;
-    private Pedido pedido;
-    private Producto producto;
+    // transient: el pedido crearia un bucle (Pedido -> lineas -> pedido) y Producto es abstracta
+    private transient Pedido pedido;
+    private transient Producto producto;
 
     public LineaPedido(){
 

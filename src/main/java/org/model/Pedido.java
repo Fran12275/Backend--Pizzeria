@@ -10,7 +10,8 @@ public class Pedido {
     private Date fecha;
     private EstadoPedido estado;
     private final List<LineaPedido> lineas = new ArrayList<>();
-    private Pagable pagable;
+    // transient: Gson no puede crear una interfaz al importar, asi que se excluye del JSON
+    private transient Pagable pagable;
     private final Cliente cliente;
 
 

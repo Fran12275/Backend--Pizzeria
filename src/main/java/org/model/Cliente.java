@@ -1,7 +1,5 @@
 package org.model;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 public class Cliente {
@@ -20,13 +18,6 @@ public class Cliente {
         this.password = password;
     }
 
-    public void addPedido(Pedido pedido) {
-        Objects.requireNonNull(pedido, "El pedido no puede ser null");
-        if (pedido.getCliente() != this) {
-            throw new IllegalArgumentException("El pedido no pertenece a este cliente");
-        }
-        pedidos.add(pedido);
-    }
     private int id;
     private String dni;
     private String nombre;
@@ -34,7 +25,6 @@ public class Cliente {
     private String telefono;
     private String email;
     private String password;
-    private final List<Pedido> pedidos =new ArrayList<>();
 
     public int getId() {
         return id;
@@ -82,8 +72,6 @@ public class Cliente {
     public void setPassword(String password) {
         this.password = password;
     }
-
-    public List<Pedido> getPedidos() {return List.copyOf(pedidos);}
 
     @Override
     public boolean equals(Object o) {
