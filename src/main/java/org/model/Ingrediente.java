@@ -3,14 +3,23 @@ package org.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.opencsv.bean.CsvBindByName;
+import com.opencsv.bean.CsvIgnore;
 
 import java.util.Objects;
 
 public class Ingrediente {
+    @CsvIgnore
     private int id;
+    @CsvBindByName(column = "Nombre")
     private String nombre;
+    @CsvBindByName(column = "Stock disponible")
     private int stock;
+    @CsvBindByName(column = "Vegano")
     private boolean esVegano;
+
+    public Ingrediente() {
+    }
 
     public Ingrediente(int id, String nombre, int stock, boolean esVegano) {
         this.id = id;
