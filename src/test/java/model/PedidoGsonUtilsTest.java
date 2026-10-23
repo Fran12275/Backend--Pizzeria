@@ -15,7 +15,7 @@ import org.model.LineaPedido;
 import org.model.PagarEfectivo;
 import org.model.Pedido;
 import org.model.Size;
-import org.service.PedidoGsonService;
+import org.utils.PedidoGsonUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,7 +25,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class PedidoGsonServiceTest {
+class PedidoGsonUtilsTest {
 
     private Path fichero;
 
@@ -51,7 +51,7 @@ class PedidoGsonServiceTest {
     @Test
     @DisplayName("el JSON no contiene pagable, ni producto ni pedido dentro de las lineas")
     void jsonSinCamposExcluidos() throws IOException {
-        PedidoGsonService.exportarPedidos(pedidosDeEjemplo(), fichero);
+        PedidoGsonUtils.exportarPedidos(pedidosDeEjemplo(), fichero);
 
         JsonArray raiz = JsonParser.parseString(Files.readString(fichero)).getAsJsonArray();
         assertEquals(1, raiz.size());
@@ -68,9 +68,9 @@ class PedidoGsonServiceTest {
     @Test
     @DisplayName("exportar e importar conserva el pedido, su cliente y sus lineas")
     void exportarEImportarConservaLosDatos() throws IOException {
-        PedidoGsonService.exportarPedidos(pedidosDeEjemplo(), fichero);
+        PedidoGsonUtils.exportarPedidos(pedidosDeEjemplo(), fichero);
 
-        List<Pedido> importados = PedidoGsonService.importarPedidos(fichero);
+        List<Pedido> importados = PedidoGsonUtils.importarPedidos(fichero);
 
         assertEquals(1, importados.size());
         Pedido pedido = importados.get(0);
@@ -90,7 +90,7 @@ class PedidoGsonServiceTest {
     void importarFicheroInexistente() throws IOException {
         Files.deleteIfExists(fichero);
 
-        assertThrows(IOException.class, () -> PedidoGsonService.importarPedidos(fichero));
+        assertThrows(IOException.class, () -> PedidoGsonUtils.importarPedidos(fichero));
     }
 
     @Test
@@ -98,12 +98,12 @@ class PedidoGsonServiceTest {
     void importarJsonInvalido() throws IOException {
         Files.writeString(fichero, "esto no es JSON [");
 
-        assertThrows(IOException.class, () -> PedidoGsonService.importarPedidos(fichero));
+        assertThrows(IOException.class, () -> PedidoGsonUtils.importarPedidos(fichero));
     }
 
     @Test
     @DisplayName("lanza NullPointerException si la lista a exportar es null")
     void exportarListaNull() {
-        assertThrows(NullPointerException.class, () -> PedidoGsonService.exportarPedidos(null, fichero));
+        assertThrows(NullPointerException.class, () -> PedidoGsonUtils.exportarPedidos(null, fichero));
     }
 }

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.model.Ingrediente;
-import org.service.IngredienteCsvService;
+import org.utils.IngredienteCsvUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,7 +14,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class IngredienteCsvServiceTest {
+class IngredienteCsvUtilsTest {
 
     private Path fichero;
 
@@ -37,7 +37,7 @@ class IngredienteCsvServiceTest {
     @Test
     @DisplayName("el CSV usa ';' como separador y no contiene la columna id")
     void csvConSeparadorPuntoYComaSinId() throws IOException {
-        IngredienteCsvService.exportarIngredientes(ingredientesDeEjemplo(), fichero);
+        IngredienteCsvUtils.exportarIngredientes(ingredientesDeEjemplo(), fichero);
 
         List<String> lineas = Files.readAllLines(fichero);
         assertEquals(3, lineas.size());
@@ -52,9 +52,9 @@ class IngredienteCsvServiceTest {
     @Test
     @DisplayName("exportar e importar conserva nombre, stock y si es vegano; el id llega a 0")
     void exportarEImportarConservaLosDatos() throws IOException {
-        IngredienteCsvService.exportarIngredientes(ingredientesDeEjemplo(), fichero);
+        IngredienteCsvUtils.exportarIngredientes(ingredientesDeEjemplo(), fichero);
 
-        List<Ingrediente> importados = IngredienteCsvService.importarIngredientes(fichero);
+        List<Ingrediente> importados = IngredienteCsvUtils.importarIngredientes(fichero);
 
         assertEquals(2, importados.size());
         Ingrediente tomate = importados.stream()
@@ -71,7 +71,7 @@ class IngredienteCsvServiceTest {
     void importarFicheroInexistente() throws IOException {
         Files.deleteIfExists(fichero);
 
-        assertThrows(IOException.class, () -> IngredienteCsvService.importarIngredientes(fichero));
+        assertThrows(IOException.class, () -> IngredienteCsvUtils.importarIngredientes(fichero));
     }
 
     @Test
@@ -79,12 +79,12 @@ class IngredienteCsvServiceTest {
     void importarCsvInvalido() throws IOException {
         Files.writeString(fichero, "NOMBRE;STOCK DISPONIBLE;VEGANO\nTomate;mucho;true\n");
 
-        assertThrows(IOException.class, () -> IngredienteCsvService.importarIngredientes(fichero));
+        assertThrows(IOException.class, () -> IngredienteCsvUtils.importarIngredientes(fichero));
     }
 
     @Test
     @DisplayName("lanza NullPointerException si la lista a exportar es null")
     void exportarListaNull() {
-        assertThrows(NullPointerException.class, () -> IngredienteCsvService.exportarIngredientes(null, fichero));
+        assertThrows(NullPointerException.class, () -> IngredienteCsvUtils.exportarIngredientes(null, fichero));
     }
 }

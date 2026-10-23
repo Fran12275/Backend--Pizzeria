@@ -1,4 +1,4 @@
-package org.service;
+package org.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -17,7 +17,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 
-public final class PedidoGsonService {
+public final class PedidoGsonUtils {
     public static final String FICHERO_PEDIDOS = "pedidos.json";
 
     private static final Type TIPO_LISTA_PEDIDOS = new TypeToken<List<Pedido>>() {}.getType();
@@ -27,7 +27,7 @@ public final class PedidoGsonService {
             .setDateFormat("yyyy-MM-dd HH:mm:ss")
             .create();
 
-    private PedidoGsonService() {
+    private PedidoGsonUtils() {
     }
 
     public static void exportarPedidos(List<Pedido> pedidos) throws IOException {

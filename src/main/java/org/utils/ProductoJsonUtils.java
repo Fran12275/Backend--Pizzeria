@@ -1,4 +1,4 @@
-package org.service;
+package org.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,14 +10,14 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 
-public final class ProductoJsonService {
+public final class ProductoJsonUtils {
     public static final String FICHERO_PRODUCTOS = "productos.json";
 
     private static final TypeReference<List<Producto>> TIPO_LISTA_PRODUCTOS = new TypeReference<List<Producto>>() {};
 
     private static final ObjectMapper MAPPER = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
-    private ProductoJsonService() {
+    private ProductoJsonUtils() {
     }
 
     public static void exportarProductos(List<Producto> productos) throws IOException {

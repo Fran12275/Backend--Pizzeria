@@ -13,7 +13,7 @@ import org.model.Pasta;
 import org.model.Pizza;
 import org.model.Producto;
 import org.model.Size;
-import org.service.ProductoJsonService;
+import org.utils.ProductoJsonUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,7 +22,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-    class ProductoJsonServiceTest {
+    class ProductoJsonUtilsTest {
 
         private Path fichero;
 
@@ -48,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.*;
         @Test
         @DisplayName("el JSON no contiene ningún id ni el atributo calculado, y cada producto lleva su 'tipo'")
         void jsonSinIdsNiAtributosCalculados() throws IOException {
-            ProductoJsonService.exportarProductos(productosDeEjemplo(), fichero);
+            ProductoJsonUtils.exportarProductos(productosDeEjemplo(), fichero);
 
             JsonNode raiz = new ObjectMapper().readTree(fichero.toFile());
             assertEquals(3, raiz.size());
@@ -69,9 +69,9 @@ import static org.junit.jupiter.api.Assertions.*;
         @Test
         @DisplayName("exportar e importar conserva tipos, atributos e ingredientes anidados")
         void exportarEImportarConservaLosDatos() throws IOException {
-            ProductoJsonService.exportarProductos(productosDeEjemplo(), fichero);
+            ProductoJsonUtils.exportarProductos(productosDeEjemplo(), fichero);
 
-            List<Producto> importados = ProductoJsonService.importarProductos(fichero);
+            List<Producto> importados = ProductoJsonUtils.importarProductos(fichero);
 
             assertEquals(3, importados.size());
 
@@ -97,10 +97,10 @@ import static org.junit.jupiter.api.Assertions.*;
         @Test
         @DisplayName("los productos importados no traen id: lo asigna el catálogo al agregarlos")
         void importadosSinIdHastaAgregarlosAlCatalogo() throws Exception {
-            ProductoJsonService.exportarProductos(productosDeEjemplo(), fichero);
+            ProductoJsonUtils.exportarProductos(productosDeEjemplo(), fichero);
             ProductoController catalogo = new ProductoController();
 
-            List<Producto> importados = ProductoJsonService.importarProductos(fichero);
+            List<Producto> importados = ProductoJsonUtils.importarProductos(fichero);
             assertTrue(importados.stream().allMatch(p -> p.getId() == 0));
 
             importados.forEach(catalogo::agregarProducto);
@@ -114,12 +114,12 @@ import static org.junit.jupiter.api.Assertions.*;
         void importarFicheroInexistente() throws IOException {
             Files.deleteIfExists(fichero);
 
-            assertThrows(IOException.class, () -> ProductoJsonService.importarProductos(fichero));
+            assertThrows(IOException.class, () -> ProductoJsonUtils.importarProductos(fichero));
         }
 
         @Test
         @DisplayName("lanza NullPointerException si la lista a exportar es null")
         void exportarListaNull() {
-            assertThrows(NullPointerException.class, () -> ProductoJsonService.exportarProductos(null, fichero));
+            assertThrows(NullPointerException.class, () -> ProductoJsonUtils.exportarProductos(null, fichero));
         }
     }

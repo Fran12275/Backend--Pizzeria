@@ -1,4 +1,4 @@
-package org.service;
+package org.utils;
 
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.opencsv.bean.StatefulBeanToCsv;
@@ -16,12 +16,12 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 
-public final class IngredienteCsvService {
+public final class IngredienteCsvUtils {
     public static final String FICHERO_INGREDIENTES = "ingredientes.csv";
 
     private static final char SEPARADOR = ';';
 
-    private IngredienteCsvService() {
+    private IngredienteCsvUtils() {
     }
 
     public static void exportarIngredientes(List<Ingrediente> ingredientes) throws IOException {
