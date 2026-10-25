@@ -86,6 +86,18 @@ class PedidoGsonUtilsTest {
     }
 
     @Test
+    @DisplayName("un pedido importado calcula su total y sabe que producto tenia cada linea")
+    void pedidoImportadoCalculaSuTotal() throws IOException {
+        PedidoGsonUtils.exportarPedidos(pedidosDeEjemplo(), fichero);
+
+        Pedido pedido = PedidoGsonUtils.importarPedidos(fichero).get(0);
+
+        assertEquals(5.0, pedido.getPrecioTotal(), 0.001); // 2 x 1.50 + 1 x 2.00
+        assertEquals(3, pedido.getLineas().get(0).getProductoId());
+        assertEquals(1.5, pedido.getLineas().get(0).getPrecioUnitario(), 0.001);
+    }
+
+    @Test
     @DisplayName("lanza IOException si el fichero a importar no existe")
     void importarFicheroInexistente() throws IOException {
         Files.deleteIfExists(fichero);
