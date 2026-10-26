@@ -1,9 +1,11 @@
 package org.utils;
 
+import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.opencsv.bean.StatefulBeanToCsv;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
+import com.opencsv.exceptions.CsvException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import org.model.Ingrediente;
 
@@ -48,14 +50,37 @@ public final class IngredienteCsvUtils {
     public static List<Ingrediente> importarIngredientes(Path ruta) throws IOException {
         Objects.requireNonNull(ruta, "La ruta no puede ser null");
         try (Reader reader = Files.newBufferedReader(ruta, StandardCharsets.UTF_8)) {
-            return new CsvToBeanBuilder<Ingrediente>(reader)
+            // Sin lanzar excepciones: OpenCSV guarda el error de cada linea en vez de imprimir su traza por consola
+            CsvToBean<Ingrediente> csv = new CsvToBeanBuilder<Ingrediente>(reader)
                     .withType(Ingrediente.class)
                     .withSeparator(SEPARADOR)
-                    .build()
-                    .parse();
+                    .withThrowExceptions(false)
+                    .build();
+            List<Ingrediente> ingredientes = leer(csv, ruta);
+            comprobarSinErrores(csv.getCapturedExceptions(), ruta);
+            return ingredientes;
+        }
+    }
+
+    // OpenCSV envuelve en RuntimeException los fallos al leer el fichero (por ejemplo, unas comillas sin cerrar):
+    // solo esos se convierten en IOException; un error de programacion no se disfraza de "CSV no valido"
+    private static List<Ingrediente> leer(CsvToBean<Ingrediente> csv, Path ruta) throws IOException {
+        try {
+            return csv.parse();
         } catch (RuntimeException e) {
-            // OpenCSV envuelve los errores de lectura (por ejemplo, un stock que no es numero) en RuntimeException
-            throw new IOException("El fichero " + ruta + " no tiene un formato CSV valido", e);
+            if (e.getCause() instanceof IOException causa) {
+                throw new IOException("El fichero " + ruta + " no tiene un formato CSV valido: " + causa.getMessage(), causa);
+            }
+            throw e;
+        }
+    }
+
+    // Si una sola linea no es valida se rechaza el fichero entero, diciendo cual falla y por que
+    private static void comprobarSinErrores(List<CsvException> errores, Path ruta) throws IOException {
+        if (!errores.isEmpty()) {
+            CsvException primero = errores.get(0);
+            throw new IOException("El fichero " + ruta + " no tiene un formato CSV valido (linea "
+                    + primero.getLineNumber() + ": " + primero.getMessage() + ")", primero);
         }
     }
 }

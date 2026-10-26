@@ -280,9 +280,18 @@ class ProductoControllerTest {
         }
 
         @Test
-        @DisplayName("lanza IOException si el stock del CSV no es un numero")
+        @DisplayName("lanza IOException si el stock del CSV no es un número y dice en qué línea está")
         void importarCsvInvalido() throws IOException {
             Files.writeString(fichero, "NOMBRE;STOCK DISPONIBLE;VEGANO\nTomate;mucho;true\n");
+
+            IOException error = assertThrows(IOException.class, () -> productoController.importarIngredientes(fichero));
+            assertTrue(error.getMessage().contains("linea 2"));
+        }
+
+        @Test
+        @DisplayName("lanza IOException si el CSV tiene unas comillas sin cerrar")
+        void importarCsvConComillasSinCerrar() throws IOException {
+            Files.writeString(fichero, "NOMBRE;STOCK DISPONIBLE;VEGANO\n\"Tomate;100;true\n");
 
             assertThrows(IOException.class, () -> productoController.importarIngredientes(fichero));
         }
