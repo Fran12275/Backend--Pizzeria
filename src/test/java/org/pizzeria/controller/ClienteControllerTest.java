@@ -259,4 +259,33 @@ class ClienteControllerTest {
                     () -> todos.add(clienteValido("intruso@test.com")));
         }
     }
+
+    @Nested
+    @DisplayName("equals() y hashCode() de Cliente")
+    class IgualdadPorId {
+
+        @Test
+        @DisplayName("dos clientes con el mismo id son iguales y tienen el mismo hashCode; con distinto id no")
+        void clientesIgualesPorId() {
+            Cliente ana = new Cliente(3, "12345678A", "Ana García", "Calle Falsa 123",
+                    "600111222", "ana@test.com", "password123");
+            Cliente anaMudada = new Cliente(3, "12345678A", "Ana García", "Calle Mayor 1",
+                    "600999888", "ana@test.com", "password123");
+
+            assertEquals(ana, anaMudada);
+            assertEquals(ana.hashCode(), anaMudada.hashCode());
+            assertNotEquals(ana, new Cliente(4, "12345678A", "Ana García", "Calle Falsa 123",
+                    "600111222", "ana@test.com", "password123"));
+        }
+
+        @Test
+        @DisplayName("dos clientes sin id (id 0) solo son iguales a sí mismos, aunque tengan los mismos datos")
+        void clientesSinIdSoloIgualesASiMismos() {
+            Cliente uno = clienteValido("ana@test.com", "12345678A");
+            Cliente otro = clienteValido("ana@test.com", "12345678A");
+
+            assertEquals(uno, uno);
+            assertNotEquals(uno, otro);
+        }
+    }
 }

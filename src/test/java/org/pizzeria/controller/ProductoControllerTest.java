@@ -477,4 +477,31 @@ class ProductoControllerTest {
             assertTrue(error.getMessage().contains("posicion 2"));
         }
     }
+
+    @Nested
+    @DisplayName("equals() y hashCode() de Producto e Ingrediente")
+    class IgualdadPorId {
+
+        @Test
+        @DisplayName("dos productos con el mismo id son iguales y tienen el mismo hashCode; con distinto id no")
+        void productosIgualesPorId() {
+            Producto agua = new Bebida(5, "Agua", 1.5, Size.PEQUENYA);
+            Producto aguaConGas = new Bebida(5, "Agua con gas", 1.8, Size.MEDIANA);
+
+            assertEquals(agua, aguaConGas);
+            assertEquals(agua.hashCode(), aguaConGas.hashCode());
+            assertNotEquals(agua, new Bebida(6, "Agua", 1.5, Size.PEQUENYA));
+        }
+
+        @Test
+        @DisplayName("dos ingredientes con el mismo id son iguales y tienen el mismo hashCode; con distinto id no")
+        void ingredientesIgualesPorId() {
+            Ingrediente tomate = new Ingrediente(7, "Tomate", 100, true);
+            Ingrediente tomateSinStock = new Ingrediente(7, "Tomate", 0, true);
+
+            assertEquals(tomate, tomateSinStock);
+            assertEquals(tomate.hashCode(), tomateSinStock.hashCode());
+            assertNotEquals(tomate, new Ingrediente(8, "Tomate", 100, true));
+        }
+    }
 }
