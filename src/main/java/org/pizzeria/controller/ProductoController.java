@@ -15,7 +15,7 @@ public class ProductoController {
     private final List<Producto> catalogo = new ArrayList<>();
     private int siguienteId = 1;
 
-    public List<Producto> listarProducto() {
+    public List<Producto> listarTodos() {
         return List.copyOf(catalogo);
     }
 
@@ -74,11 +74,11 @@ public class ProductoController {
 
     // Exporta el catalogo completo
     public void exportarProductos() throws IOException {
-        ProductoJsonUtils.exportarProductos(listarProducto());
+        ProductoJsonUtils.exportarProductos(listarTodos());
     }
 
     public void exportarProductos(Path ruta) throws IOException {
-        ProductoJsonUtils.exportarProductos(listarProducto(), ruta);
+        ProductoJsonUtils.exportarProductos(listarTodos(), ruta);
     }
 
 

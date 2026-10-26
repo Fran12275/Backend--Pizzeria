@@ -30,13 +30,13 @@ class ProductoControllerTest {
     }
 
     @Nested
-    @DisplayName("listarProducto()")
+    @DisplayName("listarTodos()")
     class ListarCatalogo {
 
         @Test
         @DisplayName("el catálogo está vacío al crear el controlador")
         void catalogoInicialVacio() {
-            assertTrue(productoController.listarProducto().isEmpty());
+            assertTrue(productoController.listarTodos().isEmpty());
         }
 
         @Test
@@ -45,13 +45,13 @@ class ProductoControllerTest {
             productoController.agregarProducto(bebida("Agua", 1.5));
             productoController.agregarProducto(bebida("Refresco", 2.0));
 
-            assertEquals(2, productoController.listarProducto().size());
+            assertEquals(2, productoController.listarTodos().size());
         }
 
         @Test
         @DisplayName("devuelve una lista inmutable (no se puede modificar desde fuera)")
         void listaEsInmutable() {
-            List<Producto> catalogo = productoController.listarProducto();
+            List<Producto> catalogo = productoController.listarTodos();
             assertThrows(UnsupportedOperationException.class,
                     () -> catalogo.add(bebida("Intrusa", 1.0)));
         }
@@ -90,7 +90,7 @@ class ProductoControllerTest {
             Producto agregado = productoController.agregarProducto(bebida("Cerveza sin alcohol", 2.20));
 
             assertEquals(1, agregado.getId());
-            assertEquals(1, productoController.listarProducto().size());
+            assertEquals(1, productoController.listarTodos().size());
         }
 
         @Test
@@ -118,7 +118,7 @@ class ProductoControllerTest {
 
             assertThrows(IllegalStateException.class, () -> productoController.agregarProducto(agua));
             assertEquals(1, agua.getId());
-            assertEquals(1, productoController.listarProducto().size());
+            assertEquals(1, productoController.listarTodos().size());
         }
 
         @Test
@@ -187,7 +187,7 @@ class ProductoControllerTest {
             Producto encontrado = productoController.buscarPorId(original.getId());
             assertEquals("Agua con gas", encontrado.getNombre());
             assertEquals(1.8, encontrado.getPrecio(), 0.001);
-            assertEquals(1, productoController.listarProducto().size());
+            assertEquals(1, productoController.listarTodos().size());
         }
 
         @Test
@@ -219,7 +219,7 @@ class ProductoControllerTest {
 
             productoController.eliminarProducto(p1.getId());
 
-            assertEquals(1, productoController.listarProducto().size());
+            assertEquals(1, productoController.listarTodos().size());
             assertThrows(ProductoNoEncontradoException.class,
                     () -> productoController.buscarPorId(p1.getId()));
             assertEquals(p2, productoController.buscarPorId(p2.getId()));
@@ -415,11 +415,11 @@ class ProductoControllerTest {
 
             List<Producto> importados = otroCatalogo.importarProductos(fichero);
             assertTrue(importados.stream().allMatch(p -> p.getId() == 0));
-            assertTrue(otroCatalogo.listarProducto().isEmpty());
+            assertTrue(otroCatalogo.listarTodos().isEmpty());
 
             importados.forEach(otroCatalogo::agregarProducto);
 
-            assertEquals(3, otroCatalogo.listarProducto().size());
+            assertEquals(3, otroCatalogo.listarTodos().size());
             assertEquals("Carbonara", otroCatalogo.buscarPorId(2).getNombre());
         }
 
