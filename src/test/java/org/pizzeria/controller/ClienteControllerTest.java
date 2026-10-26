@@ -1,6 +1,5 @@
-package model;
+package org.pizzeria.controller;
 
-import org.pizzeria.controller.ClienteController;
 import org.pizzeria.exception.ClienteNoEncontradoException;
 import org.pizzeria.exception.ClienteYaExisteException;
 import org.pizzeria.exception.CredencialesInvalidasException;
