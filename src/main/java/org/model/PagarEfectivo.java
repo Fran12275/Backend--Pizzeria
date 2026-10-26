@@ -1,5 +1,7 @@
 package org.model;
 
+import java.util.Locale;
+
 public class PagarEfectivo implements Pagable{
 
     @Override
@@ -7,6 +9,7 @@ public class PagarEfectivo implements Pagable{
         if (cantidad <= 0) {
             throw new IllegalArgumentException("La cantidad a pagar debe ser mayor que 0");
         }
-        System.out.printf("Método de pago: EFECTIVO. El cliente entrega " + cantidad + "€ en metálico al recibir el pedido.");
+        // Formato de España: el importe sale con coma decimal (17,00 €) en cualquier ordenador
+        System.out.printf(Locale.of("es", "ES"), "Método de pago: EFECTIVO. El cliente entrega %.2f € en metálico al recibir el pedido.%n", cantidad);
     }
 }
