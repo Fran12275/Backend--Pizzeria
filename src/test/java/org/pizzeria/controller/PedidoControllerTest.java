@@ -146,6 +146,19 @@ class PedidoControllerTest {
         }
 
         @Test
+        @DisplayName("la línea guarda el precio del producto al crearla: si después cambia, ni la línea ni el total cambian")
+        void lineaCongelaElPrecioDelProducto() throws Exception {
+            LineaPedido linea = pedidoController.addLineaPedido(clienteId, margaritaId, 2); // 8.50 € x2
+            assertEquals(17.0, linea.getSubtotal(), 0.001);
+
+            linea.getProducto().setPrecio(20.0);
+
+            assertEquals(8.5, linea.getPrecioUnitario(), 0.001);
+            assertEquals(17.0, linea.getSubtotal(), 0.001);
+            assertEquals(17.0, linea.getPedido().calcularPrecioTotal(), 0.001);
+        }
+
+        @Test
         @DisplayName("si el pedido anterior ya está pagado (FINALIZADO) se crea un pedido nuevo")
         void creaPedidoNuevoTrasPagarElAnterior() throws Exception {
             Pedido primero = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
