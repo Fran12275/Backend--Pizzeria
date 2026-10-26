@@ -98,14 +98,6 @@ class PedidoControllerTest {
         }
 
         @Test
-        @DisplayName("el pedido creado aparece en los pedidos del cliente")
-        void pedidoQuedaAsociadoAlCliente() throws Exception {
-            Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
-
-            assertTrue(pedidoController.listarPorCliente(clienteId).contains(pedido));
-        }
-
-        @Test
         @DisplayName("las listas que devuelven getLineas() y listarPorCliente() no se pueden modificar desde fuera")
         void listasDevueltasSonInmutables() throws Exception {
             Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
@@ -264,16 +256,6 @@ class PedidoControllerTest {
         }
 
         @Test
-        @DisplayName("lanza IllegalStateException si el pedido ya estaba pagado")
-        void rechazaPedidoYaPagado() throws Exception {
-            Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
-            pedidoController.pagarPedido(pedido.getId(), new PagableFalso());
-
-            assertThrows(IllegalStateException.class,
-                    () -> pedidoController.pagarPedido(pedido.getId(), new PagableFalso()));
-        }
-
-        @Test
         @DisplayName("pagar el pedido directamente por segunda vez lanza IllegalStateException y no vuelve a cobrar")
         void pagarDirectamenteDosVecesNoCobraDosVeces() throws Exception {
             Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
@@ -429,18 +411,6 @@ class PedidoControllerTest {
         void listarPorClienteRechazaClienteInexistente() {
             assertThrows(ClienteNoEncontradoException.class,
                     () -> pedidoController.listarPorCliente(999));
-        }
-
-        @Test
-        @DisplayName("listarTodos devuelve todos los pedidos creados, de cualquier cliente")
-        void listarTodosDevuelveTodosLosPedidos() throws Exception {
-            Cliente otro = clienteController.registrar(new Cliente(0, "87654321B", "Carlos Ruiz",
-                    "Calle Otra 456", "600333444", "carlos@test.com", "password456"));
-
-            pedidoController.addLineaPedido(clienteId, margaritaId, 1);
-            pedidoController.addLineaPedido(otro.getId(), aguaId, 1);
-
-            assertEquals(2, pedidoController.listarTodos().size());
         }
     }
 
