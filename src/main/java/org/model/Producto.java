@@ -89,7 +89,10 @@ public abstract class Producto {
 
     @Override
     public String toString() {
-        String var10000 = this.getTipo();
-        return var10000 + "{id=" + this.id + ", nombre='" + this.nombre + "', precio=" + this.precio + "}";
+        return getTipo() + "{" +
+                "id=" + id +
+                ", nombre='" + nombre + '\'' +
+                ", precio=" + precio +
+                '}';
     }
 }
