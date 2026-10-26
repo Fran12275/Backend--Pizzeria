@@ -36,6 +36,19 @@ public final class ProductoJsonUtils {
 
     public static List<Producto> importarProductos(Path ruta) throws IOException {
         Objects.requireNonNull(ruta, "La ruta no puede ser null");
-        return MAPPER.readValue(ruta.toFile(), TIPO_LISTA_PRODUCTOS);
+        List<Producto> productos = MAPPER.readValue(ruta.toFile(), TIPO_LISTA_PRODUCTOS);
+        if (productos == null) {
+            return List.of();
+        }
+        comprobarSinNulos(productos, ruta);
+        return productos;
+    }
+
+    // Un null en la lista solo puede venir de un JSON escrito a mano: se rechaza el fichero entero
+    private static void comprobarSinNulos(List<Producto> productos, Path ruta) throws IOException {
+        int posicion = productos.indexOf(null);
+        if (posicion != -1) {
+            throw new IOException("El fichero " + ruta + " contiene un producto null en la posicion " + (posicion + 1));
+        }
     }
 }

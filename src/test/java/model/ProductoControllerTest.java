@@ -414,5 +414,22 @@ class ProductoControllerTest {
 
             assertTrue(productoController.importarProductos(fichero).isEmpty());
         }
+
+        @Test
+        @DisplayName("un fichero que solo contiene null se importa como una lista vacía")
+        void importarFicheroConNull() throws IOException {
+            Files.writeString(fichero, "null");
+
+            assertTrue(productoController.importarProductos(fichero).isEmpty());
+        }
+
+        @Test
+        @DisplayName("lanza IOException si la lista contiene un producto null y dice en qué posición está")
+        void importarListaConProductoNull() throws IOException {
+            Files.writeString(fichero, "[{\"tipo\":\"bebida\",\"nombre\":\"Agua\",\"precio\":1.5,\"size\":\"PEQUENYA\"}, null]");
+
+            IOException error = assertThrows(IOException.class, () -> productoController.importarProductos(fichero));
+            assertTrue(error.getMessage().contains("posicion 2"));
+        }
     }
 }
