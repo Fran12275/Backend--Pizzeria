@@ -53,6 +53,12 @@ public class Pedido {
         this.estado = EstadoPedido.FINALIZADO;
     }
 
+    // Solo se puede cancelar un pedido pendiente: uno pagado o ya cancelado no cambia
+    public void cancelar() {
+        comprobarQueEstaPendiente();
+        this.estado = EstadoPedido.CANCELADO;
+    }
+
     private void comprobarQueEstaPendiente() {
         if (estado != EstadoPedido.PENDIENTE) {
             throw new IllegalStateException("El pedido " + id + " ya no está pendiente");

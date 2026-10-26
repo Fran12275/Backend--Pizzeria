@@ -77,6 +77,11 @@ public class PedidoController {
         pedido.pagar(metodoPago);
     }
 
+    public void cancelarPedido(int pedidoId) throws PedidoNoEncontradoException {
+        Pedido pedido = buscarPorId(pedidoId);
+        pedido.cancelar();
+    }
+
     public List<Pedido> importarPedidos() throws IOException {
         return PedidoGsonUtils.importarPedidos();
     }

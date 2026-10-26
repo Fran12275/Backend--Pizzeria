@@ -326,6 +326,62 @@ class PedidoControllerTest {
     }
 
     @Nested
+    @DisplayName("cancelarPedido()")
+    class CancelarPedido {
+
+        @Test
+        @DisplayName("un pedido pendiente pasa a CANCELADO")
+        void pedidoPendienteQuedaCancelado() throws Exception {
+            Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
+
+            pedidoController.cancelarPedido(pedido.getId());
+
+            assertEquals(EstadoPedido.CANCELADO, pedido.getEstado());
+        }
+
+        @Test
+        @DisplayName("un pedido cancelado no admite más líneas ni se puede pagar, y no se cobra nada")
+        void pedidoCanceladoNoAdmiteLineasNiPago() throws Exception {
+            Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
+            pedidoController.cancelarPedido(pedido.getId());
+            PagableFalso pagable = new PagableFalso();
+
+            assertThrows(IllegalStateException.class,
+                    () -> pedido.agregarLinea(new LineaPedido(99, 1, new Bebida(0, "Cola", 2.0, Size.PEQUENYA))));
+            assertThrows(IllegalStateException.class, () -> pedidoController.pagarPedido(pedido.getId(), pagable));
+            assertNull(pagable.cantidadCobrada);
+        }
+
+        @Test
+        @DisplayName("tras cancelar, la siguiente línea del cliente abre un pedido nuevo")
+        void trasCancelarSeCreaPedidoNuevo() throws Exception {
+            Pedido cancelado = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
+            pedidoController.cancelarPedido(cancelado.getId());
+
+            Pedido nuevo = pedidoController.addLineaPedido(clienteId, aguaId, 1).getPedido();
+
+            assertNotSame(cancelado, nuevo);
+            assertEquals(EstadoPedido.PENDIENTE, nuevo.getEstado());
+        }
+
+        @Test
+        @DisplayName("lanza IllegalStateException si el pedido ya estaba pagado, y sigue FINALIZADO")
+        void rechazaCancelarPedidoPagado() throws Exception {
+            Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
+            pedidoController.pagarPedido(pedido.getId(), new PagableFalso());
+
+            assertThrows(IllegalStateException.class, () -> pedidoController.cancelarPedido(pedido.getId()));
+            assertEquals(EstadoPedido.FINALIZADO, pedido.getEstado());
+        }
+
+        @Test
+        @DisplayName("lanza PedidoNoEncontradoException si el pedido no existe")
+        void rechazaPedidoInexistente() {
+            assertThrows(PedidoNoEncontradoException.class, () -> pedidoController.cancelarPedido(999));
+        }
+    }
+
+    @Nested
     @DisplayName("buscarPorId()")
     class BuscarPorId {
 
