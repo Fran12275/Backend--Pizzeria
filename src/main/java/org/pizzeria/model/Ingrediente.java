@@ -16,22 +16,22 @@ public class Ingrediente {
     @CsvBindByName(column = "Stock disponible")
     private int stock;
     @CsvBindByName(column = "Vegano")
-    private boolean esVegano;
+    private boolean vegano;
 
     public Ingrediente() {
     }
 
-    public Ingrediente(int id, String nombre, int stock, boolean esVegano) {
+    public Ingrediente(int id, String nombre, int stock, boolean vegano) {
         this.id = id;
         this.nombre = nombre;
         this.stock = stock;
-        this.esVegano = esVegano;
+        this.vegano = vegano;
     }
     @JsonCreator
     public Ingrediente(@JsonProperty("nombre") String nombre,
                        @JsonProperty("stock") int stock,
-                       @JsonProperty("esVegano") boolean esVegano) {
-        this(0, nombre, stock, esVegano);
+                       @JsonProperty("vegano") boolean vegano) {
+        this(0, nombre, stock, vegano);
     }
 
     @JsonIgnore
@@ -45,8 +45,8 @@ public class Ingrediente {
     public int getStock() {return stock;}
     public void setStock(int stock) {this.stock = stock;}
 
-    public boolean isEsVegano() {return esVegano;}
-    public void setEsVegano(boolean esVegano) {this.esVegano = esVegano;}
+    public boolean isVegano() {return vegano;}
+    public void setVegano(boolean vegano) {this.vegano = vegano;}
 
     @Override
     public String toString() {
@@ -54,7 +54,7 @@ public class Ingrediente {
                 "id=" + id +
                 ", nombre='" + nombre + '\'' +
                 ", stock=" + stock +
-                ", esVegano=" + esVegano +
+                ", vegano=" + vegano +
                 '}';
     }
 

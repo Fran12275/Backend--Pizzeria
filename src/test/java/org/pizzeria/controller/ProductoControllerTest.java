@@ -283,7 +283,7 @@ class ProductoControllerTest {
                     .findFirst()
                     .orElseThrow();
             assertEquals(100, tomate.getStock());
-            assertTrue(tomate.isEsVegano());
+            assertTrue(tomate.isVegano());
             assertEquals(0, tomate.getId());
         }
 
@@ -395,7 +395,7 @@ class ProductoControllerTest {
             assertEquals(2, ((Pizza) p1).getIngredientes().size());
             assertEquals("Tomate", ((Pizza) p1).getIngredientes().get(0).getNombre());
             assertEquals(100, ((Pizza) p1).getIngredientes().get(0).getStock());
-            assertTrue(((Pizza) p1).getIngredientes().get(0).isEsVegano());
+            assertTrue(((Pizza) p1).getIngredientes().get(0).isVegano());
 
             Producto p2 = importados.get(1);
             assertTrue(p2 instanceof Pasta);
