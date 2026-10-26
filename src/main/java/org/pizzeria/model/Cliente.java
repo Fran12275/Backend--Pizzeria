@@ -1,4 +1,4 @@
-package org.model;
+package org.pizzeria.model;
 
 import java.util.Objects;
 

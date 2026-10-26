@@ -1,4 +1,4 @@
-package org.model;
+package org.pizzeria.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;

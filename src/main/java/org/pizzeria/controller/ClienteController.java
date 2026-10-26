@@ -1,9 +1,9 @@
-package org.controller;
+package org.pizzeria.controller;
 
-import org.exception.ClienteNoEncontradoException;
-import org.exception.ClienteYaExisteException;
-import org.exception.CredencialesInvalidasException;
-import org.model.Cliente;
+import org.pizzeria.exception.ClienteNoEncontradoException;
+import org.pizzeria.exception.ClienteYaExisteException;
+import org.pizzeria.exception.CredencialesInvalidasException;
+import org.pizzeria.model.Cliente;
 
 import java.util.ArrayList;
 import java.util.List;

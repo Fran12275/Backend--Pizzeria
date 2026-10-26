@@ -1,9 +1,9 @@
-package org.utils;
+package org.pizzeria.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.model.Producto;
+import org.pizzeria.model.Producto;
 
 import java.io.IOException;
 import java.nio.file.Path;

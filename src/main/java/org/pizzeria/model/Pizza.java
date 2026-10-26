@@ -1,4 +1,4 @@
-package org.model;
+package org.pizzeria.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

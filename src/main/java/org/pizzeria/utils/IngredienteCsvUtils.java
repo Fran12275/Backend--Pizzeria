@@ -1,4 +1,4 @@
-package org.utils;
+package org.pizzeria.utils;
 
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
@@ -7,7 +7,7 @@ import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
-import org.model.Ingrediente;
+import org.pizzeria.model.Ingrediente;
 
 import java.io.IOException;
 import java.io.Reader;

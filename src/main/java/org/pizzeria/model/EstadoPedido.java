@@ -1,4 +1,4 @@
-package org.model;
+package org.pizzeria.model;
 
 public enum EstadoPedido {
     PENDIENTE,

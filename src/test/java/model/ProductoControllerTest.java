@@ -2,10 +2,10 @@ package model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.controller.ProductoController;
-import org.exception.ProductoNoEncontradoException;
+import org.pizzeria.controller.ProductoController;
+import org.pizzeria.exception.ProductoNoEncontradoException;
 import org.junit.jupiter.api.*;
-import org.model.*;
+import org.pizzeria.model.*;
 
 import java.io.IOException;
 import java.nio.file.Files;

@@ -1,14 +1,14 @@
 package model;
 
-import org.controller.ClienteController;
-import org.exception.ClienteNoEncontradoException;
-import org.exception.ClienteYaExisteException;
-import org.exception.CredencialesInvalidasException;
+import org.pizzeria.controller.ClienteController;
+import org.pizzeria.exception.ClienteNoEncontradoException;
+import org.pizzeria.exception.ClienteYaExisteException;
+import org.pizzeria.exception.CredencialesInvalidasException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.model.Cliente;
+import org.pizzeria.model.Cliente;
 
 import java.util.List;
 import java.util.Optional;
