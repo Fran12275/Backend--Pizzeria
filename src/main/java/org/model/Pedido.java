@@ -26,6 +26,7 @@ public class Pedido {
         if (linea == null) {
             throw new IllegalArgumentException();
         }
+        comprobarQueEstaPendiente();
         lineas.add(linea);
         linea.setPedido(this);
     }
@@ -36,10 +37,24 @@ public class Pedido {
                 .sum();
     }
 
-    public void pagar() {
-        if(pagable == null){throw  new IllegalStateException("");}
-        pagable.pagar(calcularPrecioTotal());
+    public void pagar(Pagable metodoPago) {
+        if (metodoPago == null) {
+            throw new IllegalArgumentException("El método de pago no puede ser null");
+        }
+        comprobarQueEstaPendiente();
+        if (lineas.isEmpty()) {
+            throw new IllegalStateException("No se puede pagar un pedido sin líneas");
+        }
+        metodoPago.pagar(calcularPrecioTotal());
+        // Solo se guarda el método de pago y se finaliza si el cobro ha ido bien
+        this.pagable = metodoPago;
         this.estado = EstadoPedido.FINALIZADO;
+    }
+
+    private void comprobarQueEstaPendiente() {
+        if (estado != EstadoPedido.PENDIENTE) {
+            throw new IllegalStateException("El pedido " + id + " ya no está pendiente");
+        }
     }
 
     public int getId() {
@@ -68,10 +83,6 @@ public class Pedido {
 
     public Pagable getPagable() {
         return pagable;
-    }
-
-    public void setPagable(Pagable pagable) {
-        this.pagable = pagable;
     }
 
     public Cliente getCliente() {

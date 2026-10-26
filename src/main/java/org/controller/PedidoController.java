@@ -64,17 +64,7 @@ public class PedidoController {
     public List<Pedido> listarTodos() { return List.copyOf(pedidos);}
 
     public void pagarPedido(int pedidoId, Pagable metodoPago) throws PedidoNoEncontradoException {
-        if (metodoPago == null) {
-            throw new IllegalArgumentException("El método de pago no puede ser null");
-        }
         Pedido pedido = buscarPorId(pedidoId);
-        if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
-            throw new IllegalStateException("Solo se pueden pagar pedidos pendientes");
-        }
-        if (pedido.getLineas().isEmpty()) {
-            throw new IllegalStateException("No se puede pagar un pedido sin líneas");
-        }
-        pedido.setPagable(metodoPago);
-        pedido.pagar();
+        pedido.pagar(metodoPago);
     }
 }

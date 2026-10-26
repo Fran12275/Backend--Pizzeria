@@ -213,6 +213,29 @@ class PedidoControllerTest {
         }
 
         @Test
+        @DisplayName("pagar el pedido directamente por segunda vez lanza IllegalStateException y no vuelve a cobrar")
+        void pagarDirectamenteDosVecesNoCobraDosVeces() throws Exception {
+            Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
+            PagableFalso pagable = new PagableFalso();
+            pedido.pagar(pagable);
+            pagable.cantidadCobrada = null;
+
+            assertThrows(IllegalStateException.class, () -> pedido.pagar(pagable));
+            assertNull(pagable.cantidadCobrada);
+        }
+
+        @Test
+        @DisplayName("un pedido ya pagado no admite más líneas")
+        void pedidoPagadoNoAdmiteLineas() throws Exception {
+            Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
+            pedidoController.pagarPedido(pedido.getId(), new PagableFalso());
+            LineaPedido extra = new LineaPedido(99, 1, new Bebida(0, "Cola", 2.0, Size.PEQUENYA));
+
+            assertThrows(IllegalStateException.class, () -> pedido.agregarLinea(extra));
+            assertEquals(1, pedido.getLineas().size());
+        }
+
+        @Test
         @DisplayName("lanza IllegalArgumentException si el método de pago es null")
         void rechazaMetodoPagoNull() throws Exception {
             Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();

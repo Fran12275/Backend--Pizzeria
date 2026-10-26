@@ -44,14 +44,15 @@ class PedidoGsonUtilsTest {
         Pedido pedido = new Pedido(10, new Date(), cliente);
         pedido.agregarLinea(new LineaPedido(1, 2, new Bebida(3, "Agua", 1.5, Size.PEQUENYA)));
         pedido.agregarLinea(new LineaPedido(2, 1, new Bebida(4, "Cola", 2.0, Size.GRANDE)));
-        pedido.setPagable(new PagarEfectivo());
         return List.of(pedido);
     }
 
     @Test
     @DisplayName("el JSON no contiene pagable, ni producto ni pedido dentro de las lineas")
     void jsonSinCamposExcluidos() throws IOException {
-        PedidoGsonUtils.exportarPedidos(pedidosDeEjemplo(), fichero);
+        List<Pedido> pedidos = pedidosDeEjemplo();
+        pedidos.get(0).pagar(new PagarEfectivo()); // pagado: tiene un Pagable que no debe salir en el JSON
+        PedidoGsonUtils.exportarPedidos(pedidos, fichero);
 
         JsonArray raiz = JsonParser.parseString(Files.readString(fichero)).getAsJsonArray();
         assertEquals(1, raiz.size());
