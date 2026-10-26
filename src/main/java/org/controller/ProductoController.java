@@ -23,7 +23,7 @@ public class ProductoController {
         return catalogo.stream()
                 .filter(p -> p.getId() == id)
                 .findFirst()
-                .orElseThrow(() -> new ProductoNoEncontradoException("No existe ningún prodcuto con id" + id));
+                .orElseThrow(() -> new ProductoNoEncontradoException("No existe ningún producto con id " + id));
     }
 
     public Producto agregarProducto(Producto producto) {

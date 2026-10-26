@@ -39,16 +39,17 @@ public class ClienteController {
 
     }
     public Cliente login(String email, String password) throws CredencialesInvalidasException {
+        // El mismo mensaje tanto si falla el email como la password: asi no se revela que emails estan registrados
         return buscarPorEmail(email)
                 .filter(c -> c.getPassword().equals(password))
-                .orElseThrow(() -> new CredencialesInvalidasException(""));
+                .orElseThrow(() -> new CredencialesInvalidasException("El email o la contraseña no son correctos"));
     }
 
     public Cliente buscarPorId(int id) throws ClienteNoEncontradoException {
         return clientes.stream()
                 .filter(c -> c.getId() == id)
                 .findFirst()
-                .orElseThrow(() -> new ClienteNoEncontradoException(""));
+                .orElseThrow(() -> new ClienteNoEncontradoException("No existe ningún cliente con id " + id));
     }
 
     public Optional<Cliente> buscarPorEmail(String email){

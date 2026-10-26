@@ -28,7 +28,7 @@ public class PedidoController {
 
     public LineaPedido addLineaPedido(int clienteId, int productoId, int cantidad)
             throws ProductoNoEncontradoException, ClienteNoEncontradoException {
-        if (cantidad <= 0) { throw new IllegalArgumentException();}
+        if (cantidad <= 0) { throw new IllegalArgumentException("La cantidad debe ser mayor que 0");}
         Cliente cliente = clienteController.buscarPorId(clienteId);
         Producto producto = productoController.buscarPorId(productoId);
 
@@ -54,7 +54,7 @@ public class PedidoController {
         return pedidos.stream()
                 .filter(p ->p.getId() == id)
                 .findFirst()
-                .orElseThrow(() -> new PedidoNoEncontradoException(""));
+                .orElseThrow(() -> new PedidoNoEncontradoException("No existe ningún pedido con id " + id));
     }
 
     public List<Pedido> listarPorCliente(int clienteId) throws ClienteNoEncontradoException{

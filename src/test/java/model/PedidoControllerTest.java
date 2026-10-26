@@ -194,8 +194,9 @@ class PedidoControllerTest {
         @Test
         @DisplayName("lanza IllegalArgumentException si la cantidad no es positiva")
         void rechazaCantidadNoPositiva() {
-            assertThrows(IllegalArgumentException.class,
+            IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
                     () -> pedidoController.addLineaPedido(clienteId, margaritaId, 0));
+            assertEquals("La cantidad debe ser mayor que 0", error.getMessage());
             assertTrue(pedidoController.listarTodos().isEmpty());
         }
 
@@ -300,8 +301,9 @@ class PedidoControllerTest {
         @Test
         @DisplayName("lanza PedidoNoEncontradoException si no existe")
         void lanzaExcepcionSiNoExiste() {
-            assertThrows(PedidoNoEncontradoException.class,
+            PedidoNoEncontradoException error = assertThrows(PedidoNoEncontradoException.class,
                     () -> pedidoController.buscarPorId(999));
+            assertEquals("No existe ningún pedido con id 999", error.getMessage());
         }
     }
 

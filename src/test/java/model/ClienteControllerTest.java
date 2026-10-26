@@ -161,15 +161,17 @@ class ClienteControllerTest {
         @Test
         @DisplayName("lanza CredencialesInvalidasException si el email no existe")
         void rechazaEmailInexistente() {
-            assertThrows(CredencialesInvalidasException.class,
+            CredencialesInvalidasException error = assertThrows(CredencialesInvalidasException.class,
                     () -> clienteController.login("noexiste@test.com", "password123"));
+            assertEquals("El email o la contraseña no son correctos", error.getMessage());
         }
 
         @Test
         @DisplayName("lanza CredencialesInvalidasException si la password es incorrecta")
         void rechazaPasswordIncorrecta() {
-            assertThrows(CredencialesInvalidasException.class,
+            CredencialesInvalidasException error = assertThrows(CredencialesInvalidasException.class,
                     () -> clienteController.login("ana@test.com", "password_mala"));
+            assertEquals("El email o la contraseña no son correctos", error.getMessage());
         }
     }
 
@@ -190,7 +192,9 @@ class ClienteControllerTest {
         @Test
         @DisplayName("buscarPorId lanza ClienteNoEncontradoException si no existe")
         void buscarPorIdInexistente() {
-            assertThrows(ClienteNoEncontradoException.class, () -> clienteController.buscarPorId(999));
+            ClienteNoEncontradoException error = assertThrows(ClienteNoEncontradoException.class,
+                    () -> clienteController.buscarPorId(999));
+            assertEquals("No existe ningún cliente con id 999", error.getMessage());
         }
 
         @Test

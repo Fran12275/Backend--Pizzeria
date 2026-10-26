@@ -75,8 +75,9 @@ class ProductoControllerTest {
         @Test
         @DisplayName("lanza ProductoNoEncontradoException si el id no existe")
         void lanzaExcepcionSiNoExiste() {
-            assertThrows(ProductoNoEncontradoException.class,
+            ProductoNoEncontradoException error = assertThrows(ProductoNoEncontradoException.class,
                     () -> productoController.buscarPorId(999));
+            assertEquals("No existe ningún producto con id 999", error.getMessage());
         }
     }
 
