@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PedidoController {
@@ -32,23 +33,23 @@ public class PedidoController {
         Cliente cliente = clienteController.buscarPorId(clienteId);
         Producto producto = productoController.buscarPorId(productoId);
 
-        Pedido pedido = buscarPedidoPendiente(cliente);
-
-        if (pedido == null){
-            pedido = new Pedido(secuenciaPedidoId.getAndIncrement(), new Date(),cliente);
-            pedidos.add(pedido);
-        }
+        Pedido pedido = buscarPedidoPendiente(cliente)
+                .orElseGet(() -> crearPedido(cliente));
 
         LineaPedido linea = new LineaPedido(secuenciaLineaId.getAndIncrement(), cantidad, producto);
         pedido.agregarLinea(linea);
         return linea;
     }
-    public Pedido buscarPedidoPendiente(Cliente cliente){
+    private Optional<Pedido> buscarPedidoPendiente(Cliente cliente){
         return pedidos.stream()
                 .filter(p -> p.getCliente().equals(cliente))
                 .filter(p -> p.getEstado() == EstadoPedido.PENDIENTE)
-                .findFirst()
-                .orElse(null);
+                .findFirst();
+    }
+    private Pedido crearPedido(Cliente cliente){
+        Pedido pedido = new Pedido(secuenciaPedidoId.getAndIncrement(), new Date(), cliente);
+        pedidos.add(pedido);
+        return pedido;
     }
     public Pedido buscarPorId(int id) throws PedidoNoEncontradoException {
         return pedidos.stream()
