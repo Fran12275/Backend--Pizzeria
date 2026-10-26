@@ -1,5 +1,9 @@
 package model;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.controller.ClienteController;
 import org.controller.PedidoController;
 import org.controller.ProductoController;
@@ -16,11 +20,15 @@ import org.model.Pagable;
 import org.model.Pedido;
 import org.model.Pizza;
 import org.model.Size;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -331,6 +339,107 @@ class PedidoControllerTest {
             pedidoController.addLineaPedido(otro.getId(), aguaId, 1);
 
             assertEquals(2, pedidoController.listarTodos().size());
+        }
+    }
+
+    @Nested
+    @DisplayName("importarPedidos() y exportarPedidos()")
+    class PedidosGson {
+
+        private Path fichero;
+
+        @BeforeEach
+        void crearFicheroTemporal() throws IOException {
+            fichero = Files.createTempFile("pedidos", ".json");
+        }
+
+        @AfterEach
+        void borrarFicheroTemporal() throws IOException {
+            Files.deleteIfExists(fichero);
+        }
+
+        // Pedido de Ana con 2 margaritas (8.50 €) y 1 agua (1.50 €): 18.50 € en total
+        private Pedido crearPedidoDeEjemplo() throws Exception {
+            pedidoController.addLineaPedido(clienteId, margaritaId, 2);
+            return pedidoController.addLineaPedido(clienteId, aguaId, 1).getPedido();
+        }
+
+        @Test
+        @DisplayName("el JSON no contiene pagable, ni producto ni pedido dentro de las lineas")
+        void jsonSinCamposExcluidos() throws Exception {
+            Pedido creado = crearPedidoDeEjemplo();
+            pedidoController.pagarPedido(creado.getId(), new PagableFalso()); // pagado: tiene un Pagable que no debe salir en el JSON
+            pedidoController.exportarPedidos(fichero);
+
+            JsonArray raiz = JsonParser.parseString(Files.readString(fichero)).getAsJsonArray();
+            assertEquals(1, raiz.size());
+            JsonObject pedido = raiz.get(0).getAsJsonObject();
+            assertFalse(pedido.has("pagable"));
+            assertTrue(pedido.has("cliente"));
+            for (JsonElement linea : pedido.get("lineas").getAsJsonArray()) {
+                assertFalse(linea.getAsJsonObject().has("producto"));
+                assertFalse(linea.getAsJsonObject().has("pedido"));
+                assertTrue(linea.getAsJsonObject().has("cantidad"));
+            }
+        }
+
+        @Test
+        @DisplayName("exportar e importar conserva el pedido, su cliente y sus lineas, sin añadirlo al controlador")
+        void exportarEImportarConservaLosDatos() throws Exception {
+            Pedido creado = crearPedidoDeEjemplo();
+            pedidoController.exportarPedidos(fichero);
+
+            List<Pedido> importados = pedidoController.importarPedidos(fichero);
+
+            assertEquals(1, importados.size());
+            Pedido pedido = importados.get(0);
+            assertEquals(creado.getId(), pedido.getId());
+            assertEquals(EstadoPedido.PENDIENTE, pedido.getEstado());
+            assertNotNull(pedido.getFecha());
+            assertEquals("Ana García", pedido.getCliente().getNombre());
+            assertNull(pedido.getPagable());
+            assertEquals(2, pedido.getLineas().size());
+            assertEquals(2, pedido.getLineas().get(0).getCantidad());
+            assertNull(pedido.getLineas().get(0).getProducto());
+            assertSame(pedido, pedido.getLineas().get(0).getPedido());
+            assertEquals(1, pedidoController.listarTodos().size());
+        }
+
+        @Test
+        @DisplayName("un pedido importado calcula su total y sabe que producto tenia cada linea")
+        void pedidoImportadoCalculaSuTotal() throws Exception {
+            crearPedidoDeEjemplo();
+            pedidoController.exportarPedidos(fichero);
+
+            Pedido pedido = pedidoController.importarPedidos(fichero).get(0);
+
+            assertEquals(18.5, pedido.getPrecioTotal(), 0.001); // 2 x 8.50 + 1 x 1.50
+            assertEquals(margaritaId, pedido.getLineas().get(0).getProductoId());
+            assertEquals(8.5, pedido.getLineas().get(0).getPrecioUnitario(), 0.001);
+        }
+
+        @Test
+        @DisplayName("lanza IOException si el fichero a importar no existe")
+        void importarFicheroInexistente() throws IOException {
+            Files.deleteIfExists(fichero);
+
+            assertThrows(IOException.class, () -> pedidoController.importarPedidos(fichero));
+        }
+
+        @Test
+        @DisplayName("lanza IOException si el fichero no tiene un formato JSON valido")
+        void importarJsonInvalido() throws IOException {
+            Files.writeString(fichero, "esto no es JSON [");
+
+            assertThrows(IOException.class, () -> pedidoController.importarPedidos(fichero));
+        }
+
+        @Test
+        @DisplayName("sin pedidos exporta una lista vacía")
+        void exportarSinPedidos() throws IOException {
+            pedidoController.exportarPedidos(fichero);
+
+            assertTrue(pedidoController.importarPedidos(fichero).isEmpty());
         }
     }
 }

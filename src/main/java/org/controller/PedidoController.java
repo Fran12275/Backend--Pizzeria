@@ -4,7 +4,10 @@ import org.exception.ClienteNoEncontradoException;
 import org.exception.PedidoNoEncontradoException;
 import org.exception.ProductoNoEncontradoException;
 import org.model.*;
+import org.utils.PedidoGsonUtils;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -66,5 +69,22 @@ public class PedidoController {
     public void pagarPedido(int pedidoId, Pagable metodoPago) throws PedidoNoEncontradoException {
         Pedido pedido = buscarPorId(pedidoId);
         pedido.pagar(metodoPago);
+    }
+
+    public List<Pedido> importarPedidos() throws IOException {
+        return PedidoGsonUtils.importarPedidos();
+    }
+
+    public List<Pedido> importarPedidos(Path ruta) throws IOException {
+        return PedidoGsonUtils.importarPedidos(ruta);
+    }
+
+    // Exporta todos los pedidos del controlador
+    public void exportarPedidos() throws IOException {
+        PedidoGsonUtils.exportarPedidos(listarTodos());
+    }
+
+    public void exportarPedidos(Path ruta) throws IOException {
+        PedidoGsonUtils.exportarPedidos(listarTodos(), ruta);
     }
 }
