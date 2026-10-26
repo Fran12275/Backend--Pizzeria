@@ -15,8 +15,8 @@ import org.pizzeria.model.EstadoPedido;
 import org.pizzeria.model.Ingrediente;
 import org.pizzeria.model.LineaPedido;
 import org.pizzeria.model.Pagable;
-import org.pizzeria.model.PagarConTarjeta;
-import org.pizzeria.model.PagarEfectivo;
+import org.pizzeria.model.PagoConTarjeta;
+import org.pizzeria.model.PagoEnEfectivo;
 import org.pizzeria.model.Pedido;
 import org.pizzeria.model.Pizza;
 import org.pizzeria.model.Size;
@@ -303,9 +303,9 @@ class PedidoControllerTest {
         @DisplayName("pagar con tarjeta o en efectivo exige una cantidad mayor que 0")
         void metodosDePagoRechazanCantidadNoPositiva() {
             IllegalArgumentException tarjeta = assertThrows(IllegalArgumentException.class,
-                    () -> new PagarConTarjeta().pagar(0));
+                    () -> new PagoConTarjeta().pagar(0));
             IllegalArgumentException efectivo = assertThrows(IllegalArgumentException.class,
-                    () -> new PagarEfectivo().pagar(-1));
+                    () -> new PagoEnEfectivo().pagar(-1));
 
             assertEquals("La cantidad a pagar debe ser mayor que 0", tarjeta.getMessage());
             assertEquals("La cantidad a pagar debe ser mayor que 0", efectivo.getMessage());

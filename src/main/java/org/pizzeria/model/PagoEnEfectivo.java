@@ -2,7 +2,7 @@ package org.pizzeria.model;
 
 import java.util.Locale;
 
-public class PagarEfectivo implements Pagable{
+public class PagoEnEfectivo implements Pagable{
 
     @Override
     public void pagar(double cantidad) {
