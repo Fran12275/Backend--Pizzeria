@@ -97,7 +97,7 @@ class PedidoControllerTest {
             assertEquals(EstadoPedido.PENDIENTE, pedido.getEstado());
             assertEquals(1, pedido.getLineas().size());
             assertEquals(2, linea.getCantidad());
-            assertEquals(17.0, pedido.getPrecioTotal(), 0.001);
+            assertEquals(17.0, pedido.calcularPrecioTotal(), 0.001);
         }
 
         @Test
@@ -145,7 +145,6 @@ class PedidoControllerTest {
             pedidoController.addLineaPedido(clienteId, margaritaId, 1);                     // 8.50 €
             Pedido pedido = pedidoController.addLineaPedido(clienteId, aguaId, 2).getPedido(); // 1.50 € x2
 
-            assertEquals(11.50, pedido.getPrecioTotal(), 0.001);
             assertEquals(11.50, pedido.calcularPrecioTotal(), 0.001);
         }
 
@@ -459,7 +458,7 @@ class PedidoControllerTest {
 
             Pedido pedido = pedidoController.importarPedidos(fichero).get(0);
 
-            assertEquals(18.5, pedido.getPrecioTotal(), 0.001); // 2 x 8.50 + 1 x 1.50
+            assertEquals(18.5, pedido.calcularPrecioTotal(), 0.001); // 2 x 8.50 + 1 x 1.50
             assertEquals(margaritaId, pedido.getLineas().get(0).getProductoId());
             assertEquals(8.5, pedido.getLineas().get(0).getPrecioUnitario(), 0.001);
         }

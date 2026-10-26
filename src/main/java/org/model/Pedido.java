@@ -116,8 +116,6 @@ public class Pedido {
         return cliente;
     }
 
-    public double getPrecioTotal() {return calcularPrecioTotal();}
-
 
     @Override
     public String toString() {
