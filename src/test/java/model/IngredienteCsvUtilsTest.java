@@ -10,6 +10,7 @@ import org.utils.IngredienteCsvUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -64,6 +65,17 @@ class IngredienteCsvUtilsTest {
         assertEquals(100, tomate.getStock());
         assertTrue(tomate.isEsVegano());
         assertEquals(0, tomate.getId());
+    }
+
+    @Test
+    @DisplayName("los ingredientes importados sin id son distintos entre si")
+    void importadosSinIdSonDistintos() throws IOException {
+        IngredienteCsvUtils.exportarIngredientes(ingredientesDeEjemplo(), fichero);
+
+        List<Ingrediente> importados = IngredienteCsvUtils.importarIngredientes(fichero);
+
+        assertNotEquals(importados.get(0), importados.get(1));
+        assertEquals(2, new HashSet<>(importados).size());
     }
 
     @Test

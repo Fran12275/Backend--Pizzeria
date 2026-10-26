@@ -68,16 +68,19 @@ public abstract class Producto {
     public boolean equals(Object o) {
         if (this == o) {
             return true;
-        } else if (!(o instanceof Producto producto)) {
-            return false;
-        } else {
-            return this.id == producto.id;
         }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Producto otro = (Producto) o;
+        // id 0 = todavia sin id asignado: solo es igual a si mismo
+        return this.id != 0 && this.id == otro.id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.id);
+        // Coherente con equals: sin id, cada objeto tiene su propio hash
+        return this.id != 0 ? Objects.hash(this.id) : System.identityHashCode(this);
     }
 
     @Override

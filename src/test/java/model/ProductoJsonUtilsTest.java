@@ -18,6 +18,7 @@ import org.utils.ProductoJsonUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -107,6 +108,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
             assertEquals(3, catalogo.listarProducto().size());
             assertEquals("Carbonara", catalogo.buscarPorId(2).getNombre());
+        }
+
+        @Test
+        @DisplayName("los productos importados sin id son distintos entre si")
+        void importadosSinIdSonDistintos() throws IOException {
+            ProductoJsonUtils.exportarProductos(productosDeEjemplo(), fichero);
+
+            List<Producto> importados = ProductoJsonUtils.importarProductos(fichero);
+
+            assertNotEquals(importados.get(0), importados.get(1));
+            assertEquals(3, new HashSet<>(importados).size());
         }
 
         @Test

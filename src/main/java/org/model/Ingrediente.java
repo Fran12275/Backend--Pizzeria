@@ -60,11 +60,16 @@ public class Ingrediente {
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) return true;
         if (!(o instanceof Ingrediente that)) return false;
-        return id == that.id;
+        // id 0 = todavia sin id asignado: solo es igual a si mismo
+        return id != 0 && id == that.id;
     }
 
     @Override
-    public int hashCode() {return Objects.hashCode(id);}
+    public int hashCode() {
+        // Coherente con equals: sin id, cada objeto tiene su propio hash
+        return id != 0 ? Objects.hashCode(id) : System.identityHashCode(this);
+    }
 }
 

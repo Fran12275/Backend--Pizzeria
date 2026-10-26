@@ -77,12 +77,14 @@ public class Cliente {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Cliente cliente)) return false;
-        return id == cliente.id;
+        // id 0 = todavia sin id asignado: solo es igual a si mismo
+        return id != 0 && id == cliente.id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        // Coherente con equals: sin id, cada objeto tiene su propio hash
+        return id != 0 ? Objects.hash(id) : System.identityHashCode(this);
     }
 
     @Override
