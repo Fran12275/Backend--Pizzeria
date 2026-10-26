@@ -24,23 +24,23 @@ public abstract class Producto {
     private double precio;
 
     protected Producto(int id, String nombre, double precio){
-        if (precio <= 0){
-            throw new IllegalArgumentException("El precio debe ser mayor que 0");
-        }
-        else {
-            this.id = id;
-            this.nombre = nombre;
-            this.precio = precio;
-        }
+        validarPrecio(precio);
+        this.id = id;
+        this.nombre = nombre;
+        this.precio = precio;
     }
 
 
     public double getPrecio() { return this.precio; }
     public void setPrecio(double precio) {
+        validarPrecio(precio);
+        this.precio = precio;
+    }
+
+    // Misma regla al crear el producto y al cambiarle el precio: siempre mayor que 0
+    private static void validarPrecio(double precio) {
         if (precio <= 0) {
             throw new IllegalArgumentException("El precio debe ser mayor que 0");
-        } else {
-            this.precio = precio;
         }
     }
 
