@@ -5,7 +5,11 @@ import org.exception.ProductoNoEncontradoException;
 import org.junit.jupiter.api.*;
 import org.model.*;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -197,6 +201,95 @@ class ProductoControllerTest {
         void rechazaProductoInexistente() {
             assertThrows(ProductoNoEncontradoException.class,
                     () -> productoController.eliminarProducto(999));
+        }
+    }
+
+    @Nested
+    @DisplayName("importarIngredientes() y exportarIngredientes()")
+    class IngredientesCsv {
+
+        private Path fichero;
+
+        @BeforeEach
+        void crearFicheroTemporal() throws IOException {
+            fichero = Files.createTempFile("ingredientes", ".csv");
+        }
+
+        @AfterEach
+        void borrarFicheroTemporal() throws IOException {
+            Files.deleteIfExists(fichero);
+        }
+
+        private List<Ingrediente> ingredientesDeEjemplo() {
+            return List.of(
+                    new Ingrediente(7, "Tomate", 100, true),
+                    new Ingrediente(8, "Mozzarella", 50, false));
+        }
+
+        @Test
+        @DisplayName("el CSV usa ';' como separador y no contiene la columna id")
+        void csvConSeparadorPuntoYComaSinId() throws IOException {
+            productoController.exportarIngredientes(ingredientesDeEjemplo(), fichero);
+
+            List<String> lineas = Files.readAllLines(fichero);
+            assertEquals(3, lineas.size());
+            String cabecera = lineas.get(0).toUpperCase();
+            assertTrue(cabecera.contains(";"));
+            assertFalse(cabecera.contains("ID"));
+            assertTrue(cabecera.contains("NOMBRE"));
+            assertTrue(cabecera.contains("STOCK DISPONIBLE"));
+            assertTrue(cabecera.contains("VEGANO"));
+        }
+
+        @Test
+        @DisplayName("exportar e importar conserva nombre, stock y si es vegano; el id llega a 0")
+        void exportarEImportarConservaLosDatos() throws IOException {
+            productoController.exportarIngredientes(ingredientesDeEjemplo(), fichero);
+
+            List<Ingrediente> importados = productoController.importarIngredientes(fichero);
+
+            assertEquals(2, importados.size());
+            Ingrediente tomate = importados.stream()
+                    .filter(i -> i.getNombre().equals("Tomate"))
+                    .findFirst()
+                    .orElseThrow();
+            assertEquals(100, tomate.getStock());
+            assertTrue(tomate.isEsVegano());
+            assertEquals(0, tomate.getId());
+        }
+
+        @Test
+        @DisplayName("los ingredientes importados sin id son distintos entre si")
+        void importadosSinIdSonDistintos() throws IOException {
+            productoController.exportarIngredientes(ingredientesDeEjemplo(), fichero);
+
+            List<Ingrediente> importados = productoController.importarIngredientes(fichero);
+
+            assertNotEquals(importados.get(0), importados.get(1));
+            assertEquals(2, new HashSet<>(importados).size());
+        }
+
+        @Test
+        @DisplayName("lanza IOException si el fichero a importar no existe")
+        void importarFicheroInexistente() throws IOException {
+            Files.deleteIfExists(fichero);
+
+            assertThrows(IOException.class, () -> productoController.importarIngredientes(fichero));
+        }
+
+        @Test
+        @DisplayName("lanza IOException si el stock del CSV no es un numero")
+        void importarCsvInvalido() throws IOException {
+            Files.writeString(fichero, "NOMBRE;STOCK DISPONIBLE;VEGANO\nTomate;mucho;true\n");
+
+            assertThrows(IOException.class, () -> productoController.importarIngredientes(fichero));
+        }
+
+        @Test
+        @DisplayName("lanza NullPointerException si la lista a exportar es null")
+        void exportarListaNull() {
+            assertThrows(NullPointerException.class,
+                    () -> productoController.exportarIngredientes(null, fichero));
         }
     }
 }

@@ -2,7 +2,10 @@ package org.controller;
 
 import org.exception.ProductoNoEncontradoException;
 import org.model.*;
+import org.utils.IngredienteCsvUtils;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +47,21 @@ public class ProductoController {
         catalogo.remove(buscarPorId(id));
     }
 
+    public List<Ingrediente> importarIngredientes() throws IOException {
+        return IngredienteCsvUtils.importarIngredientes();
+    }
+
+    public List<Ingrediente> importarIngredientes(Path ruta) throws IOException {
+        return IngredienteCsvUtils.importarIngredientes(ruta);
+    }
+
+    public void exportarIngredientes(List<Ingrediente> ingredientes) throws IOException {
+        IngredienteCsvUtils.exportarIngredientes(ingredientes);
+    }
+
+    public void exportarIngredientes(List<Ingrediente> ingredientes, Path ruta) throws IOException {
+        IngredienteCsvUtils.exportarIngredientes(ingredientes, ruta);
+    }
 
 
 }
