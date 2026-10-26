@@ -17,9 +17,7 @@ public class ClienteController {
     public Cliente registrar(Cliente clienteSinId) throws ClienteYaExisteException {
         validarDatosCliente(clienteSinId);
 
-        boolean emailEnUso = clientes.stream()
-                .anyMatch(c -> c.getEmail().equalsIgnoreCase(clienteSinId.getEmail()));
-        if (emailEnUso){
+        if (buscarPorEmail(clienteSinId.getEmail()).isPresent()){
             throw new ClienteYaExisteException("Ya existe un cliente registrado con el email: " +
                     clienteSinId.getEmail());
         }
@@ -37,10 +35,8 @@ public class ClienteController {
 
     }
     public Cliente login(String email, String password) throws CredencialesInvalidasException {
-        return clientes.stream()
-                .filter(c -> c.getEmail().equalsIgnoreCase(email))
+        return buscarPorEmail(email)
                 .filter(c -> c.getPassword().equals(password))
-                .findFirst()
                 .orElseThrow(() -> new CredencialesInvalidasException(""));
     }
 
