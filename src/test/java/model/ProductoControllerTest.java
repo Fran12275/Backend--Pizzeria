@@ -5,6 +5,7 @@ import org.exception.ProductoNoEncontradoException;
 import org.junit.jupiter.api.*;
 import org.model.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -123,6 +124,18 @@ class ProductoControllerTest {
             Producto agua = bebida("Agua", 1.5);
             assertThrows(IllegalArgumentException.class, () -> agua.setPrecio(0.0));
             assertEquals(1.5, agua.getPrecio(), 0.001);
+        }
+
+        @Test
+        @DisplayName("una pizza o una pasta no pueden tener ingredientes null")
+        void rechazaIngredientesNull() {
+            Ingrediente tomate = new Ingrediente(1, "Tomate", 100, true);
+            List<Ingrediente> conNull = Arrays.asList(tomate, null);
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> new Pizza(0, "Rota", 8.5, Size.MEDIANA, conNull));
+            assertThrows(IllegalArgumentException.class,
+                    () -> new Pasta(0, "Rota", 9.0, Size.GRANDE, conNull));
         }
     }
 

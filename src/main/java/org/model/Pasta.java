@@ -17,6 +17,9 @@ public class Pasta extends Producto{
         if (ingredientes == null || ingredientes.isEmpty()){
             throw new IllegalArgumentException();
         }
+        if (ingredientes.stream().anyMatch(Objects::isNull)){
+            throw new IllegalArgumentException("Ningún ingrediente de la pasta puede ser null");
+        }
         this.ingredientes.addAll(ingredientes);
     }
 

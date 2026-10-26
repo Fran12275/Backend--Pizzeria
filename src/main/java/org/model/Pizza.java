@@ -18,6 +18,9 @@ public class Pizza extends Producto{
         if (ingredientes == null || ingredientes.isEmpty()) {
             throw new IllegalArgumentException();
         }
+        if (ingredientes.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("Ningún ingrediente de la pizza puede ser null");
+        }
         this.ingredientes.addAll(ingredientes);
     }
     @JsonCreator
