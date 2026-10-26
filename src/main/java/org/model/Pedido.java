@@ -17,7 +17,9 @@ public class Pedido {
 
     public Pedido(int id, Date fecha, Cliente cliente) {
         this.id = id;
-        this.fecha = fecha;
+        Objects.requireNonNull(fecha, "La fecha no puede ser null");
+        // Copia: si quien pasa la fecha la cambia despues, el pedido no se ve afectado
+        this.fecha = new Date(fecha.getTime());
         this.estado = EstadoPedido.PENDIENTE;
         this.cliente = Objects.requireNonNull(cliente);
     }
@@ -57,20 +59,20 @@ public class Pedido {
         }
     }
 
+    // Al importar con Gson las lineas llegan sin su pedido (es transient): aqui se vuelven a enlazar
+    public void reenlazarLineas() {
+        for (LineaPedido linea : lineas) {
+            linea.setPedido(this);
+        }
+    }
+
     public int getId() {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public Date getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(Date fecha) {
-        this.fecha = fecha;
+        // Copia: quien la recibe no puede cambiar la fecha del pedido
+        return new Date(fecha.getTime());
     }
 
     public EstadoPedido getEstado() {

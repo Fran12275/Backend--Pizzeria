@@ -103,6 +103,17 @@ class PedidoControllerTest {
         }
 
         @Test
+        @DisplayName("la fecha que devuelve el pedido es una copia: cambiarla no cambia el pedido")
+        void fechaNoSeModificaDesdeFuera() throws Exception {
+            Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
+            long fechaOriginal = pedido.getFecha().getTime();
+
+            pedido.getFecha().setTime(0);
+
+            assertEquals(fechaOriginal, pedido.getFecha().getTime());
+        }
+
+        @Test
         @DisplayName("con pedido pendiente añade la línea a ese mismo pedido, sin crear otro")
         void reutilizaPedidoPendiente() throws Exception {
             Pedido primero = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
@@ -174,6 +185,15 @@ class PedidoControllerTest {
             assertThrows(IllegalArgumentException.class,
                     () -> pedidoController.addLineaPedido(clienteId, margaritaId, 0));
             assertTrue(pedidoController.listarTodos().isEmpty());
+        }
+
+        @Test
+        @DisplayName("una línea de pedido no se puede crear con cantidad 0 o negativa")
+        void lineaConCantidadNoPositivaSeRechaza() {
+            Bebida agua = new Bebida(0, "Agua", 1.5, Size.PEQUENYA);
+
+            assertThrows(IllegalArgumentException.class, () -> new LineaPedido(1, 0, agua));
+            assertThrows(IllegalArgumentException.class, () -> new LineaPedido(1, -5, agua));
         }
     }
 

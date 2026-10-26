@@ -103,6 +103,16 @@ class ProductoControllerTest {
             assertThrows(IllegalArgumentException.class,
                     () -> productoController.agregarProducto(null));
         }
+
+        @Test
+        @DisplayName("lanza IllegalStateException si se agrega dos veces el mismo producto")
+        void rechazaAgregarDosVecesElMismoProducto() {
+            Producto agua = productoController.agregarProducto(bebida("Agua", 1.5));
+
+            assertThrows(IllegalStateException.class, () -> productoController.agregarProducto(agua));
+            assertEquals(1, agua.getId());
+            assertEquals(1, productoController.listarProducto().size());
+        }
     }
 
     @Nested

@@ -49,7 +49,11 @@ public abstract class Producto {
         return id;
     }
 
+    // El id lo asigna el catalogo una sola vez: cambiarlo despues romperia equals/hashCode
     public void setId(int id) {
+        if (this.id != 0) {
+            throw new IllegalStateException("El producto ya tiene el id " + this.id);
+        }
         this.id = id;
     }
 

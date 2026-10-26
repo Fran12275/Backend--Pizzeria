@@ -13,11 +13,15 @@ public class LineaPedido {
     private transient Pedido pedido;
     private transient Producto producto;
 
-    public LineaPedido(){
+    // Solo lo usa Gson al importar: desde fuera hay que crear las lineas con producto y cantidad
+    private LineaPedido(){
 
     }
     public LineaPedido(int id, int cantidad, Producto producto) {
         this.producto = Objects.requireNonNull(producto, "El producto no puede ser null");
+        if (cantidad <= 0) {
+            throw new IllegalArgumentException("La cantidad debe ser mayor que 0");
+        }
         this.cantidad = cantidad;
         this.id = id;
         this.productoId = producto.getId();
@@ -30,13 +34,12 @@ public class LineaPedido {
 
 
     public Pedido getPedido(){return pedido;}
-    public void setPedido(Pedido pedido) {this.pedido = pedido;}
+    // Sin public: solo Pedido (mismo paquete) puede decir a que pedido pertenece la linea
+    void setPedido(Pedido pedido) {this.pedido = pedido;}
 
     public int getId() {return id;}
-    public void setId(int id) {this.id = id;}
 
     public int getCantidad() {return cantidad;}
-    public void setCantidad(int cantidad) {this.cantidad = cantidad;}
 
     public int getProductoId() {return productoId;}
 

@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
-import org.model.LineaPedido;
 import org.model.Pedido;
 
 import java.io.IOException;
@@ -64,9 +63,7 @@ public final class PedidoGsonUtils {
     // El pedido de cada linea no esta en el JSON: se vuelve a enlazar al importar
     private static void enlazarLineasConSuPedido(List<Pedido> pedidos) {
         for (Pedido pedido : pedidos) {
-            for (LineaPedido linea : pedido.getLineas()) {
-                linea.setPedido(pedido);
-            }
+            pedido.reenlazarLineas();
         }
     }
 }
