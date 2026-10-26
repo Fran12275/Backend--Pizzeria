@@ -25,8 +25,15 @@ class ClienteControllerTest {
         clienteController = new ClienteController();
     }
 
+    private int siguienteNumeroDni = 10000000;
+
+    // Cada cliente de prueba lleva un DNI distinto, para que solo choquen cuando el test lo busca
     private Cliente clienteValido(String email) {
-        return new Cliente(0, "12345678A", "Ana García", "Calle Falsa 123",
+        return clienteValido(email, (siguienteNumeroDni++) + "A");
+    }
+
+    private Cliente clienteValido(String email, String dni) {
+        return new Cliente(0, dni, "Ana García", "Calle Falsa 123",
                 "600111222", email, "password123");
     }
 
@@ -70,6 +77,25 @@ class ClienteControllerTest {
 
             assertThrows(ClienteYaExisteException.class,
                     () -> clienteController.registrar(clienteValido("dup@test.com")));
+        }
+
+        @Test
+        @DisplayName("lanza ClienteYaExisteException si el DNI ya está registrado")
+        void rechazaDniDuplicado() throws ClienteYaExisteException {
+            clienteController.registrar(clienteValido("ana@test.com", "12345678A"));
+
+            assertThrows(ClienteYaExisteException.class,
+                    () -> clienteController.registrar(clienteValido("otra@test.com", "12345678A")));
+            assertEquals(1, clienteController.listarTodos().size());
+        }
+
+        @Test
+        @DisplayName("la comprobación de DNI duplicado ignora mayúsculas/minúsculas en la letra")
+        void dniDuplicadoEsCaseInsensitive() throws ClienteYaExisteException {
+            clienteController.registrar(clienteValido("ana@test.com", "12345678A"));
+
+            assertThrows(ClienteYaExisteException.class,
+                    () -> clienteController.registrar(clienteValido("otra@test.com", "12345678a")));
         }
 
         @Test

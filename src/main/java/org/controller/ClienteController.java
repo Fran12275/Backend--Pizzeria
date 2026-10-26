@@ -21,6 +21,10 @@ public class ClienteController {
             throw new ClienteYaExisteException("Ya existe un cliente registrado con el email: " +
                     clienteSinId.getEmail());
         }
+        if (dniEnUso(clienteSinId.getDni())){
+            throw new ClienteYaExisteException("Ya existe un cliente registrado con el DNI: " +
+                    clienteSinId.getDni());
+        }
         Cliente nuevoCliente = new Cliente(
                 secuenciaId.getAndIncrement(),
                 clienteSinId.getDni(),
@@ -53,6 +57,12 @@ public class ClienteController {
                 .findFirst();
     }
     public List<Cliente> listarTodos(){ return List.copyOf(clientes);}
+
+    // La letra del DNI puede venir en mayuscula o minuscula: 12345678a es el mismo DNI que 12345678A
+    private boolean dniEnUso(String dni) {
+        return clientes.stream()
+                .anyMatch(c -> c.getDni().equalsIgnoreCase(dni));
+    }
 
     private void validarDatosCliente(Cliente cliente){
         if (cliente == null){
