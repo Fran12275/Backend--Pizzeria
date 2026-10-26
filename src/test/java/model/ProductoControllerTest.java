@@ -144,6 +144,33 @@ class ProductoControllerTest {
             assertThrows(IllegalArgumentException.class,
                     () -> new Pasta(0, "Rota", 9.0, Size.GRANDE, conNull));
         }
+
+        @Test
+        @DisplayName("una pizza o una pasta deben tener al menos un ingrediente")
+        void rechazaListaDeIngredientesVacia() {
+            IllegalArgumentException errorPizza = assertThrows(IllegalArgumentException.class,
+                    () -> new Pizza(0, "Vacía", 8.5, Size.MEDIANA, List.of()));
+            IllegalArgumentException errorPasta = assertThrows(IllegalArgumentException.class,
+                    () -> new Pasta(0, "Vacía", 9.0, Size.GRANDE, List.of()));
+
+            assertEquals("La pizza debe tener al menos un ingrediente", errorPizza.getMessage());
+            assertEquals("La pasta debe tener al menos un ingrediente", errorPasta.getMessage());
+        }
+
+        @Test
+        @DisplayName("no se puede añadir un ingrediente null a una pizza o a una pasta")
+        void rechazaAnadirIngredienteNull() {
+            Ingrediente tomate = new Ingrediente(1, "Tomate", 100, true);
+            Pizza pizza = new Pizza(0, "Margarita", 8.5, Size.MEDIANA, List.of(tomate));
+            Pasta pasta = new Pasta(0, "Napolitana", 9.0, Size.GRANDE, List.of(tomate));
+
+            NullPointerException errorPizza = assertThrows(NullPointerException.class, () -> pizza.addIngrediente(null));
+            NullPointerException errorPasta = assertThrows(NullPointerException.class, () -> pasta.addIngrediente(null));
+
+            assertEquals("El ingrediente no puede ser null", errorPizza.getMessage());
+            assertEquals("El ingrediente no puede ser null", errorPasta.getMessage());
+            assertEquals(1, pizza.getIngredientes().size());
+        }
     }
 
     @Nested

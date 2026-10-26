@@ -18,6 +18,8 @@ import org.model.EstadoPedido;
 import org.model.Ingrediente;
 import org.model.LineaPedido;
 import org.model.Pagable;
+import org.model.PagarConTarjeta;
+import org.model.PagarEfectivo;
 import org.model.Pedido;
 import org.model.Pizza;
 import org.model.Size;
@@ -32,6 +34,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -208,6 +211,22 @@ class PedidoControllerTest {
             assertThrows(IllegalArgumentException.class, () -> new LineaPedido(1, 0, agua));
             assertThrows(IllegalArgumentException.class, () -> new LineaPedido(1, -5, agua));
         }
+
+        @Test
+        @DisplayName("no se puede añadir una línea null a un pedido")
+        void rechazaLineaNull() throws Exception {
+            Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1).getPedido();
+
+            IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> pedido.agregarLinea(null));
+            assertEquals("La línea de pedido no puede ser null", error.getMessage());
+        }
+
+        @Test
+        @DisplayName("un pedido no se puede crear sin cliente")
+        void pedidoSinClienteSeRechaza() {
+            NullPointerException error = assertThrows(NullPointerException.class, () -> new Pedido(1, new Date(), null));
+            assertEquals("El cliente no puede ser null", error.getMessage());
+        }
     }
 
     @Nested
@@ -282,6 +301,18 @@ class PedidoControllerTest {
         void rechazaPedidoInexistente() {
             assertThrows(PedidoNoEncontradoException.class,
                     () -> pedidoController.pagarPedido(999, new PagableFalso()));
+        }
+
+        @Test
+        @DisplayName("pagar con tarjeta o en efectivo exige una cantidad mayor que 0")
+        void metodosDePagoRechazanCantidadNoPositiva() {
+            IllegalArgumentException tarjeta = assertThrows(IllegalArgumentException.class,
+                    () -> new PagarConTarjeta().pagar(0));
+            IllegalArgumentException efectivo = assertThrows(IllegalArgumentException.class,
+                    () -> new PagarEfectivo().pagar(-1));
+
+            assertEquals("La cantidad a pagar debe ser mayor que 0", tarjeta.getMessage());
+            assertEquals("La cantidad a pagar debe ser mayor que 0", efectivo.getMessage());
         }
     }
 

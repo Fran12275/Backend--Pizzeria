@@ -21,12 +21,12 @@ public class Pedido {
         // Copia: si quien pasa la fecha la cambia despues, el pedido no se ve afectado
         this.fecha = new Date(fecha.getTime());
         this.estado = EstadoPedido.PENDIENTE;
-        this.cliente = Objects.requireNonNull(cliente);
+        this.cliente = Objects.requireNonNull(cliente, "El cliente no puede ser null");
     }
 
     public void agregarLinea(LineaPedido linea) {
         if (linea == null) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("La línea de pedido no puede ser null");
         }
         comprobarQueEstaPendiente();
         lineas.add(linea);

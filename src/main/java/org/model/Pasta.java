@@ -15,7 +15,7 @@ public class Pasta extends Producto{
         super(id, nombre, precio);
         this.size = size;
         if (ingredientes == null || ingredientes.isEmpty()){
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("La pasta debe tener al menos un ingrediente");
         }
         if (ingredientes.stream().anyMatch(Objects::isNull)){
             throw new IllegalArgumentException("Ningún ingrediente de la pasta puede ser null");
@@ -36,7 +36,7 @@ public class Pasta extends Producto{
     public void setSize(Size size) {this.size = size;}
 
     public List<Ingrediente> getIngredientes()  {return List.copyOf(ingredientes);}
-    public void addIngrediente(Ingrediente ingrediente) {ingredientes.add(Objects.requireNonNull(ingrediente));}
+    public void addIngrediente(Ingrediente ingrediente) {ingredientes.add(Objects.requireNonNull(ingrediente, "El ingrediente no puede ser null"));}
 
     @Override
     public String getTipo() {
