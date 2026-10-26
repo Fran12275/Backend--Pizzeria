@@ -4,6 +4,14 @@ import java.util.Objects;
 
 public class Cliente {
 
+    private int id;
+    private String dni;
+    private String nombre;
+    private String direccion;
+    private String telefono;
+    private String email;
+    private String password;
+
     // Solo lo usa Gson al importar pedidos: desde fuera hay que crear el cliente con todos sus datos
     private Cliente() {
 
@@ -18,14 +26,6 @@ public class Cliente {
         this.email = email;
         this.password = password;
     }
-
-    private int id;
-    private String dni;
-    private String nombre;
-    private String direccion;
-    private String telefono;
-    private String email;
-    private String password;
 
     public int getId() {
         return id;
