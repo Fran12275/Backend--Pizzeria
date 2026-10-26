@@ -10,11 +10,12 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ProductoController {
 
     private final List<Producto> catalogo = new ArrayList<>();
-    private int siguienteId = 1;
+    private final AtomicInteger secuenciaId = new AtomicInteger(1);
 
     public List<Producto> listarTodos() {
         return List.copyOf(catalogo);
@@ -31,7 +32,7 @@ public class ProductoController {
         if (producto == null) {
             throw new IllegalArgumentException("El producto no puede ser null");
         }
-        producto.setId(siguienteId++);
+        producto.setId(secuenciaId.getAndIncrement());
         catalogo.add(producto);
         return producto;
     }
