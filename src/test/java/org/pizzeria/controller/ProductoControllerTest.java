@@ -453,6 +453,14 @@ class ProductoControllerTest {
         }
 
         @Test
+        @DisplayName("lanza IOException si el fichero no tiene un formato JSON valido")
+        void importarJsonInvalido() throws IOException {
+            Files.writeString(fichero, "esto no es JSON [");
+
+            assertThrows(IOException.class, () -> productoController.importarProductos(fichero));
+        }
+
+        @Test
         @DisplayName("con el catálogo vacío exporta una lista vacía")
         void exportarCatalogoVacio() throws IOException {
             productoController.exportarProductos(fichero);
