@@ -102,34 +102,53 @@ class ClienteControllerTest {
         @DisplayName("lanza IllegalArgumentException si el email está vacío")
         void rechazaEmailVacio() {
             Cliente invalido = new Cliente(0, "12345678A", "Ana", "Dir", "600111222", "", "pass123");
-            assertThrows(IllegalArgumentException.class, () -> clienteController.registrar(invalido));
+            IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                    () -> clienteController.registrar(invalido));
+            assertEquals("El email es un dato obligatorio", error.getMessage());
+        }
+
+        @Test
+        @DisplayName("lanza IllegalArgumentException si el email es null")
+        void rechazaEmailNull() {
+            Cliente invalido = new Cliente(0, "12345678A", "Ana", "Dir", "600111222", null, "pass123");
+            IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                    () -> clienteController.registrar(invalido));
+            assertEquals("El email es un dato obligatorio", error.getMessage());
         }
 
         @Test
         @DisplayName("lanza IllegalArgumentException si la password está vacía")
         void rechazaPasswordVacia() {
             Cliente invalido = new Cliente(0, "12345678A", "Ana", "Dir", "600111222", "ana@test.com", "  ");
-            assertThrows(IllegalArgumentException.class, () -> clienteController.registrar(invalido));
+            IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                    () -> clienteController.registrar(invalido));
+            assertEquals("La contraseña es un dato obligatorio", error.getMessage());
         }
 
         @Test
         @DisplayName("lanza IllegalArgumentException si el nombre está vacío")
         void rechazaNombreVacio() {
             Cliente invalido = new Cliente(0, "12345678A", "", "Dir", "600111222", "ana@test.com", "pass123");
-            assertThrows(IllegalArgumentException.class, () -> clienteController.registrar(invalido));
+            IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                    () -> clienteController.registrar(invalido));
+            assertEquals("El nombre es un dato obligatorio", error.getMessage());
         }
 
         @Test
         @DisplayName("lanza IllegalArgumentException si el DNI está vacío")
         void rechazaDniVacio() {
             Cliente invalido = new Cliente(0, "", "Ana", "Dir", "600111222", "ana@test.com", "pass123");
-            assertThrows(IllegalArgumentException.class, () -> clienteController.registrar(invalido));
+            IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                    () -> clienteController.registrar(invalido));
+            assertEquals("El DNI es un dato obligatorio", error.getMessage());
         }
 
         @Test
         @DisplayName("lanza IllegalArgumentException si el cliente es null")
         void rechazaClienteNull() {
-            assertThrows(IllegalArgumentException.class, () -> clienteController.registrar(null));
+            IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                    () -> clienteController.registrar(null));
+            assertEquals("El cliente no puede ser null", error.getMessage());
         }
     }
 

@@ -67,19 +67,18 @@ public class ClienteController {
 
     private void validarDatosCliente(Cliente cliente){
         if (cliente == null){
-            throw new IllegalArgumentException("");
+            throw new IllegalArgumentException("El cliente no puede ser null");
         }
-        if (cliente.getEmail() == null || cliente.getEmail().isBlank()){
-            throw new IllegalArgumentException();
-        }
-        if (cliente.getNombre() == null || cliente.getNombre().isBlank()){
-            throw new IllegalArgumentException("");
-        }
-        if (cliente.getDni() == null || cliente.getDni().isBlank()){
-            throw new IllegalArgumentException("");
-        }
-        if (cliente.getPassword() == null || cliente.getPassword().isBlank()) {
-            throw new IllegalArgumentException("La password es obligatoria");
+        validarObligatorio(cliente.getEmail(), "El email");
+        validarObligatorio(cliente.getNombre(), "El nombre");
+        validarObligatorio(cliente.getDni(), "El DNI");
+        validarObligatorio(cliente.getPassword(), "La contraseña");
+    }
+
+    // Un dato obligatorio no puede faltar ni estar en blanco (solo espacios tampoco vale)
+    private static void validarObligatorio(String valor, String dato) {
+        if (valor == null || valor.isBlank()) {
+            throw new IllegalArgumentException(dato + " es un dato obligatorio");
         }
     }
 }
