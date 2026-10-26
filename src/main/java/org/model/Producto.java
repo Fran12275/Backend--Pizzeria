@@ -24,8 +24,8 @@ public abstract class Producto {
     private double precio;
 
     protected Producto(int id, String nombre, double precio){
-        if (precio < 0){
-            throw new IllegalArgumentException("");
+        if (precio <= 0){
+            throw new IllegalArgumentException("El precio debe ser mayor que 0");
         }
         else {
             this.id = id;
@@ -37,8 +37,8 @@ public abstract class Producto {
 
     public double getPrecio() { return this.precio; }
     public void setPrecio(double precio) {
-        if (precio < 0) {
-            throw new IllegalArgumentException("El precio no puede ser negativo");
+        if (precio <= 0) {
+            throw new IllegalArgumentException("El precio debe ser mayor que 0");
         } else {
             this.precio = precio;
         }

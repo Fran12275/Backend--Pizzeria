@@ -113,6 +113,17 @@ class ProductoControllerTest {
             assertEquals(1, agua.getId());
             assertEquals(1, productoController.listarProducto().size());
         }
+
+        @Test
+        @DisplayName("un producto no puede tener precio 0 ni negativo")
+        void rechazaPrecioCeroONegativo() {
+            assertThrows(IllegalArgumentException.class, () -> bebida("Gratis", 0.0));
+            assertThrows(IllegalArgumentException.class, () -> bebida("Negativa", -1.0));
+
+            Producto agua = bebida("Agua", 1.5);
+            assertThrows(IllegalArgumentException.class, () -> agua.setPrecio(0.0));
+            assertEquals(1.5, agua.getPrecio(), 0.001);
+        }
     }
 
     @Nested
