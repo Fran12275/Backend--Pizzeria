@@ -66,6 +66,31 @@ public class Pedido {
         }
     }
 
+    // Gson crea el pedido sin pasar por el constructor: al importar se comprueba que cumpla lo mismo que exige el constructor
+    public void comprobarQueEstaCompleto() {
+        comprobarQueExiste(fecha, "la fecha");
+        comprobarQueExiste(estado, "el estado");
+        comprobarQueExiste(cliente, "el cliente");
+        comprobarQueExiste(lineas, "la lista de líneas");
+        comprobarLineas();
+    }
+
+    private void comprobarQueExiste(Object dato, String nombre) {
+        if (dato == null) {
+            throw new IllegalStateException("Al pedido " + id + " le falta " + nombre);
+        }
+    }
+
+    private void comprobarLineas() {
+        for (int i = 0; i < lineas.size(); i++) {
+            LineaPedido linea = lineas.get(i);
+            if (linea == null || !linea.tieneDatosValidos()) {
+                throw new IllegalStateException("La línea " + (i + 1) + " del pedido " + id
+                        + " está vacía o tiene una cantidad o un precio no válidos");
+            }
+        }
+    }
+
     public int getId() {
         return id;
     }

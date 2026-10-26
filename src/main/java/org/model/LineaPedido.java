@@ -32,6 +32,11 @@ public class LineaPedido {
         return this.precioUnitario * this.cantidad;
     }
 
+    // Gson crea la linea sin pasar por el constructor: al importar se comprueba que sus datos sean validos
+    boolean tieneDatosValidos() {
+        return cantidad > 0 && precioUnitario > 0;
+    }
+
 
     public Pedido getPedido(){return pedido;}
     // Sin public: solo Pedido (mismo paquete) puede decir a que pedido pertenece la linea

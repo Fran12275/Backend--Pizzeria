@@ -56,8 +56,28 @@ public final class PedidoGsonUtils {
         if (pedidos == null) {
             return List.of();
         }
+        comprobarPedidos(pedidos, ruta);
         enlazarLineasConSuPedido(pedidos);
         return pedidos;
+    }
+
+    // Si un solo pedido no es valido se rechaza el fichero entero, diciendo cual falla y por que
+    private static void comprobarPedidos(List<Pedido> pedidos, Path ruta) throws IOException {
+        for (int i = 0; i < pedidos.size(); i++) {
+            comprobarPedido(pedidos.get(i), i + 1, ruta);
+        }
+    }
+
+    private static void comprobarPedido(Pedido pedido, int posicion, Path ruta) throws IOException {
+        if (pedido == null) {
+            throw new IOException("El fichero " + ruta + " contiene un pedido null en la posicion " + posicion);
+        }
+        try {
+            pedido.comprobarQueEstaCompleto();
+        } catch (IllegalStateException e) {
+            throw new IOException("El fichero " + ruta + " tiene un pedido no valido en la posicion "
+                    + posicion + ": " + e.getMessage(), e);
+        }
     }
 
     // El pedido de cada linea no esta en el JSON: se vuelve a enlazar al importar

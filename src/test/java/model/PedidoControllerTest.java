@@ -2,6 +2,7 @@ package model;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.controller.ClienteController;
@@ -25,11 +26,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -364,6 +368,15 @@ class PedidoControllerTest {
             return pedidoController.addLineaPedido(clienteId, aguaId, 1).getPedido();
         }
 
+        // Exporta el pedido de ejemplo y lo estropea a mano, como si alguien hubiera editado el JSON
+        private void exportarYEstropear(Consumer<JsonObject> estropear) throws Exception {
+            crearPedidoDeEjemplo();
+            pedidoController.exportarPedidos(fichero);
+            JsonArray raiz = JsonParser.parseString(Files.readString(fichero)).getAsJsonArray();
+            estropear.accept(raiz.get(0).getAsJsonObject());
+            Files.writeString(fichero, raiz.toString());
+        }
+
         @Test
         @DisplayName("el JSON no contiene pagable, ni producto ni pedido dentro de las lineas")
         void jsonSinCamposExcluidos() throws Exception {
@@ -440,6 +453,43 @@ class PedidoControllerTest {
             pedidoController.exportarPedidos(fichero);
 
             assertTrue(pedidoController.importarPedidos(fichero).isEmpty());
+        }
+
+        @Test
+        @DisplayName("lanza IOException si la lista contiene un pedido null y dice en qué posición está")
+        void importarListaConPedidoNull() throws IOException {
+            Files.writeString(fichero, "[null]");
+
+            IOException error = assertThrows(IOException.class, () -> pedidoController.importarPedidos(fichero));
+            assertTrue(error.getMessage().contains("posicion 1"));
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"fecha", "estado", "cliente", "lineas"})
+        @DisplayName("lanza IOException si a un pedido le falta un dato obligatorio")
+        void importarPedidoIncompleto(String campo) throws Exception {
+            exportarYEstropear(pedido -> pedido.remove(campo));
+
+            IOException error = assertThrows(IOException.class, () -> pedidoController.importarPedidos(fichero));
+            assertTrue(error.getMessage().contains("le falta"));
+        }
+
+        @Test
+        @DisplayName("lanza IOException si una línea tiene cantidad 0")
+        void importarPedidoConLineaDeCantidadCero() throws Exception {
+            exportarYEstropear(pedido -> pedido.getAsJsonArray("lineas").get(0).getAsJsonObject().addProperty("cantidad", 0));
+
+            IOException error = assertThrows(IOException.class, () -> pedidoController.importarPedidos(fichero));
+            assertTrue(error.getMessage().contains("línea 1"));
+        }
+
+        @Test
+        @DisplayName("lanza IOException si una línea es null")
+        void importarPedidoConLineaNull() throws Exception {
+            exportarYEstropear(pedido -> pedido.getAsJsonArray("lineas").set(0, JsonNull.INSTANCE));
+
+            IOException error = assertThrows(IOException.class, () -> pedidoController.importarPedidos(fichero));
+            assertTrue(error.getMessage().contains("línea 1"));
         }
     }
 }
