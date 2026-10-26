@@ -3,6 +3,7 @@ package org.controller;
 import org.exception.ProductoNoEncontradoException;
 import org.model.*;
 import org.utils.IngredienteCsvUtils;
+import org.utils.ProductoJsonUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -61,6 +62,23 @@ public class ProductoController {
 
     public void exportarIngredientes(List<Ingrediente> ingredientes, Path ruta) throws IOException {
         IngredienteCsvUtils.exportarIngredientes(ingredientes, ruta);
+    }
+
+    public List<Producto> importarProductos() throws IOException {
+        return ProductoJsonUtils.importarProductos();
+    }
+
+    public List<Producto> importarProductos(Path ruta) throws IOException {
+        return ProductoJsonUtils.importarProductos(ruta);
+    }
+
+    // Exporta el catalogo completo
+    public void exportarProductos() throws IOException {
+        ProductoJsonUtils.exportarProductos(listarProducto());
+    }
+
+    public void exportarProductos(Path ruta) throws IOException {
+        ProductoJsonUtils.exportarProductos(listarProducto(), ruta);
     }
 
 
