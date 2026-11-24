@@ -19,11 +19,11 @@ import java.util.Objects;
 public abstract class Producto {
 
     @JsonIgnore
-    private int id;
+    private long id;
     private String nombre;
     private double precio;
 
-    protected Producto(int id, String nombre, double precio){
+    protected Producto(long id, String nombre, double precio){
         validarPrecio(precio);
         this.id = id;
         this.nombre = nombre;
@@ -45,12 +45,12 @@ public abstract class Producto {
     }
 
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
     // El id lo asigna el catalogo una sola vez: cambiarlo despues romperia equals/hashCode
-    public void setId(int id) {
+    public void setId(long id) {
         if (this.id != 0) {
             throw new IllegalStateException("El producto ya tiene el id " + this.id);
         }

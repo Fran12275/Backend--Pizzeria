@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Bebida extends Producto{
     private Size size;
 
-    public Bebida(int id, String nombre, double precio, Size size) {
+    public Bebida(long id, String nombre, double precio, Size size) {
         super(id, nombre, precio);
         this.size = size;
     }

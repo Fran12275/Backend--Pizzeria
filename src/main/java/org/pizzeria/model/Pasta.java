@@ -11,7 +11,7 @@ public class Pasta extends Producto{
     private Size size;
     private final List<Ingrediente> ingredientes = new ArrayList<>();
 
-    public Pasta(int id, String nombre, double precio, Size size, List<Ingrediente> ingredientes){
+    public Pasta(long id, String nombre, double precio, Size size, List<Ingrediente> ingredientes){
         super(id, nombre, precio);
         this.size = size;
         if (ingredientes == null || ingredientes.isEmpty()){

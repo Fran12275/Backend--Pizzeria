@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class Pedido {
-    private int id;
+    private long id;
     private Date fecha;
     private EstadoPedido estado;
     private final List<LineaPedido> lineas = new ArrayList<>();
@@ -15,7 +15,7 @@ public class Pedido {
     private final Cliente cliente;
 
 
-    public Pedido(int id, Date fecha, Cliente cliente) {
+    public Pedido(long id, Date fecha, Cliente cliente) {
         this.id = id;
         Objects.requireNonNull(fecha, "La fecha no puede ser null");
         // Copia: si quien pasa la fecha la cambia despues, el pedido no se ve afectado
@@ -97,7 +97,7 @@ public class Pedido {
         }
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 

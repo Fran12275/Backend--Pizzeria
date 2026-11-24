@@ -10,7 +10,7 @@ import java.util.Objects;
 
 public class Ingrediente {
     @CsvIgnore
-    private int id;
+    private long id;
     @CsvBindByName(column = "Nombre")
     private String nombre;
     @CsvBindByName(column = "Stock disponible")
@@ -21,7 +21,7 @@ public class Ingrediente {
     public Ingrediente() {
     }
 
-    public Ingrediente(int id, String nombre, int stock, boolean vegano) {
+    public Ingrediente(long id, String nombre, int stock, boolean vegano) {
         this.id = id;
         this.nombre = nombre;
         this.stock = stock;
@@ -35,9 +35,9 @@ public class Ingrediente {
     }
 
     @JsonIgnore
-    public int getId() {return id;}
+    public long getId() {return id;}
     @JsonIgnore
-    public void setId(int id) {this.id = id;}
+    public void setId(long id) {this.id = id;}
 
     public String getNombre() {return nombre;}
     public void setNombre(String nombre) {this.nombre = nombre;}

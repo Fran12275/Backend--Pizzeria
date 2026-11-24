@@ -3,9 +3,9 @@ package org.pizzeria.model;
 import java.util.Objects;
 
 public class LineaPedido {
-    private int id;
+    private long id;
     private int cantidad;
-    private int productoId;
+    private long productoId;
     // Precio del producto al crear la linea: si despues cambia, el pedido no se ve afectado
     private double precioUnitario;
     // transient: el pedido crearia un bucle (Pedido -> lineas -> pedido) y Producto es abstracta.
@@ -17,7 +17,7 @@ public class LineaPedido {
     private LineaPedido(){
 
     }
-    public LineaPedido(int id, int cantidad, Producto producto) {
+    public LineaPedido(long id, int cantidad, Producto producto) {
         this.producto = Objects.requireNonNull(producto, "El producto no puede ser null");
         if (cantidad <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor que 0");
@@ -42,11 +42,11 @@ public class LineaPedido {
     // Sin public: solo Pedido (mismo paquete) puede decir a que pedido pertenece la linea
     void setPedido(Pedido pedido) {this.pedido = pedido;}
 
-    public int getId() {return id;}
+    public long getId() {return id;}
 
     public int getCantidad() {return cantidad;}
 
-    public int getProductoId() {return productoId;}
+    public long getProductoId() {return productoId;}
 
     public double getPrecioUnitario() {return precioUnitario;}
 

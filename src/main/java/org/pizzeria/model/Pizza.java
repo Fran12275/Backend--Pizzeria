@@ -12,7 +12,7 @@ public class Pizza extends Producto{
     private Size size;
     private final List<Ingrediente> ingredientes = new ArrayList<>();
 
-    public Pizza(int id, String nombre, double precio, Size size, List<Ingrediente> ingredientes) {
+    public Pizza(long id, String nombre, double precio, Size size, List<Ingrediente> ingredientes) {
         super(id, nombre, precio);
         this.size = size;
         if (ingredientes == null || ingredientes.isEmpty()) {

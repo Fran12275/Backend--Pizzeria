@@ -41,9 +41,9 @@ class PedidoControllerTest {
 
     private ClienteController clienteController;
     private PedidoController pedidoController;
-    private int clienteId;
-    private int margaritaId;   // 8.50 €
-    private int aguaId;        // 1.50 €
+    private long clienteId;
+    private long margaritaId;   // 8.50 €
+    private long aguaId;        // 1.50 €
 
     @BeforeEach
     void setUp() throws ClienteYaExisteException {

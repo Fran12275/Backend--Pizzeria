@@ -17,12 +17,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class PedidoController {
     private final List<Pedido> pedidos = new ArrayList<>();
-    private final AtomicInteger secuenciaPedidoId = new AtomicInteger(1);
-    private final AtomicInteger secuenciaLineaId = new AtomicInteger(1);
+    private final AtomicLong secuenciaPedidoId = new AtomicLong(1);
+    private final AtomicLong secuenciaLineaId = new AtomicLong(1);
 
     private final ClienteController clienteController;
     private final ProductoController productoController;
@@ -32,7 +32,7 @@ public class PedidoController {
         this.productoController = productoController;
     }
 
-    public LineaPedido addLineaPedido(int clienteId, int productoId, int cantidad)
+    public LineaPedido addLineaPedido(long clienteId, long productoId, int cantidad)
             throws ProductoNoEncontradoException, ClienteNoEncontradoException {
         if (cantidad <= 0) { throw new IllegalArgumentException("La cantidad debe ser mayor que 0");}
         Cliente cliente = clienteController.buscarPorId(clienteId);
@@ -56,14 +56,14 @@ public class PedidoController {
         pedidos.add(pedido);
         return pedido;
     }
-    public Pedido buscarPorId(int id) throws PedidoNoEncontradoException {
+    public Pedido buscarPorId(long id) throws PedidoNoEncontradoException {
         return pedidos.stream()
                 .filter(p ->p.getId() == id)
                 .findFirst()
                 .orElseThrow(() -> new PedidoNoEncontradoException("No existe ningún pedido con id " + id));
     }
 
-    public List<Pedido> listarPorCliente(int clienteId) throws ClienteNoEncontradoException{
+    public List<Pedido> listarPorCliente(long clienteId) throws ClienteNoEncontradoException{
         Cliente cliente = clienteController.buscarPorId(clienteId);
         return pedidos.stream()
                 .filter(p -> p.getCliente().equals(cliente))
@@ -72,12 +72,12 @@ public class PedidoController {
 
     public List<Pedido> listarTodos() { return List.copyOf(pedidos);}
 
-    public void pagarPedido(int pedidoId, Pagable metodoPago) throws PedidoNoEncontradoException {
+    public void pagarPedido(long pedidoId, Pagable metodoPago) throws PedidoNoEncontradoException {
         Pedido pedido = buscarPorId(pedidoId);
         pedido.pagar(metodoPago);
     }
 
-    public void cancelarPedido(int pedidoId) throws PedidoNoEncontradoException {
+    public void cancelarPedido(long pedidoId) throws PedidoNoEncontradoException {
         Pedido pedido = buscarPorId(pedidoId);
         pedido.cancelar();
     }

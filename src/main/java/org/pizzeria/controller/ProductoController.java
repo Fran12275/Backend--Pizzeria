@@ -10,18 +10,18 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class ProductoController {
 
     private final List<Producto> catalogo = new ArrayList<>();
-    private final AtomicInteger secuenciaId = new AtomicInteger(1);
+    private final AtomicLong secuenciaId = new AtomicLong(1);
 
     public List<Producto> listarTodos() {
         return List.copyOf(catalogo);
     }
 
-    public Producto buscarPorId(int id) throws ProductoNoEncontradoException {
+    public Producto buscarPorId(long id) throws ProductoNoEncontradoException {
         return catalogo.stream()
                 .filter(p -> p.getId() == id)
                 .findFirst()
@@ -46,7 +46,7 @@ public class ProductoController {
         return producto;
     }
 
-    public void eliminarProducto(int id) throws ProductoNoEncontradoException {
+    public void eliminarProducto(long id) throws ProductoNoEncontradoException {
         catalogo.remove(buscarPorId(id));
     }
 

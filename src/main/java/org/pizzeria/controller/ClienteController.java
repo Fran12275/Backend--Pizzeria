@@ -8,11 +8,11 @@ import org.pizzeria.model.Cliente;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class ClienteController {
     private final List<Cliente> clientes = new ArrayList<>();
-    private final AtomicInteger secuenciaId = new AtomicInteger(1);
+    private final AtomicLong secuenciaId = new AtomicLong(1);
 
     public Cliente registrar(Cliente clienteSinId) throws ClienteYaExisteException {
         validarDatosCliente(clienteSinId);
@@ -45,7 +45,7 @@ public class ClienteController {
                 .orElseThrow(() -> new CredencialesInvalidasException("El email o la contraseña no son correctos"));
     }
 
-    public Cliente buscarPorId(int id) throws ClienteNoEncontradoException {
+    public Cliente buscarPorId(long id) throws ClienteNoEncontradoException {
         return clientes.stream()
                 .filter(c -> c.getId() == id)
                 .findFirst()
