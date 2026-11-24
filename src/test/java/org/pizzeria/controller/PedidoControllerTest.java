@@ -20,6 +20,7 @@ import org.pizzeria.model.PagoEnEfectivo;
 import org.pizzeria.model.Pedido;
 import org.pizzeria.model.Pizza;
 import org.pizzeria.model.Size;
+import org.pizzeria.utils.EsquemaBaseDatos;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,6 +32,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
@@ -46,7 +48,9 @@ class PedidoControllerTest {
     private long aguaId;        // 1.50 €
 
     @BeforeEach
-    void setUp() throws ClienteYaExisteException {
+    void setUp() throws ClienteYaExisteException, SQLException {
+        // Los clientes ya se guardan en MySQL: cada test empieza con las tablas vacias
+        EsquemaBaseDatos.borrarYCrearTablas();
         clienteController = new ClienteController();
         ProductoController productoController = new ProductoController();
         pedidoController = new PedidoController(clienteController, productoController);

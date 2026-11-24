@@ -31,6 +31,14 @@ public class Cliente {
         return id;
     }
 
+    // El id lo genera MySQL al guardar el cliente y solo se pone una vez: cambiarlo despues romperia equals/hashCode
+    public void setId(long id) {
+        if (this.id != 0) {
+            throw new IllegalStateException("El cliente ya tiene el id " + this.id);
+        }
+        this.id = id;
+    }
+
     public String getDni() {
         return dni;
     }

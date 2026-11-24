@@ -1,20 +1,20 @@
 package org.pizzeria.controller;
 
+import org.pizzeria.controller.dao.ClienteDao;
+import org.pizzeria.controller.dao.impl.JdbcClienteDao;
 import org.pizzeria.exception.ClienteNoEncontradoException;
 import org.pizzeria.exception.ClienteYaExisteException;
 import org.pizzeria.exception.CredencialesInvalidasException;
 import org.pizzeria.model.Cliente;
 
-import java.util.ArrayList;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class ClienteController {
-    private final List<Cliente> clientes = new ArrayList<>();
-    private final AtomicLong secuenciaId = new AtomicLong(1);
+    private final ClienteDao clienteDao = JdbcClienteDao.getInstance();
 
-    public Cliente registrar(Cliente clienteSinId) throws ClienteYaExisteException {
+    public Cliente registrar(Cliente clienteSinId) throws ClienteYaExisteException, SQLException {
         validarDatosCliente(clienteSinId);
 
         if (buscarPorEmail(clienteSinId.getEmail()).isPresent()){
@@ -25,44 +25,31 @@ public class ClienteController {
             throw new ClienteYaExisteException("Ya existe un cliente registrado con el DNI: " +
                     clienteSinId.getDni());
         }
-        Cliente nuevoCliente = new Cliente(
-                secuenciaId.getAndIncrement(),
-                clienteSinId.getDni(),
-                clienteSinId.getNombre(),
-                clienteSinId.getDireccion(),
-                clienteSinId.getTelefono(),
-                clienteSinId.getEmail(),
-                clienteSinId.getPassword()
-        );
-        clientes.add(nuevoCliente);
-        return nuevoCliente;
+        // Al guardarlo, MySQL genera el id y save se lo pone a este mismo objeto
+        clienteDao.save(clienteSinId);
+        return clienteSinId;
 
     }
-    public Cliente login(String email, String password) throws CredencialesInvalidasException {
+    public Cliente login(String email, String password) throws CredencialesInvalidasException, SQLException {
         // El mismo mensaje tanto si falla el email como la password: asi no se revela que emails estan registrados
         return buscarPorEmail(email)
                 .filter(c -> c.getPassword().equals(password))
                 .orElseThrow(() -> new CredencialesInvalidasException("El email o la contraseña no son correctos"));
     }
 
-    public Cliente buscarPorId(long id) throws ClienteNoEncontradoException {
-        return clientes.stream()
-                .filter(c -> c.getId() == id)
-                .findFirst()
+    public Cliente buscarPorId(long id) throws ClienteNoEncontradoException, SQLException {
+        return clienteDao.findById(id)
                 .orElseThrow(() -> new ClienteNoEncontradoException("No existe ningún cliente con id " + id));
     }
 
-    public Optional<Cliente> buscarPorEmail(String email){
-        return clientes.stream()
-                .filter(c -> c.getEmail().equalsIgnoreCase(email))
-                .findFirst();
+    public Optional<Cliente> buscarPorEmail(String email) throws SQLException {
+        return clienteDao.findByEmail(email);
     }
-    public List<Cliente> listarTodos(){ return List.copyOf(clientes);}
+    public List<Cliente> listarTodos() throws SQLException { return clienteDao.findAll();}
 
-    // La letra del DNI puede venir en mayuscula o minuscula: 12345678a es el mismo DNI que 12345678A
-    private boolean dniEnUso(String dni) {
-        return clientes.stream()
-                .anyMatch(c -> c.getDni().equalsIgnoreCase(dni));
+    // La letra del DNI puede venir en mayuscula o minuscula: MySQL no las distingue, asi que 12345678a es el mismo DNI que 12345678A
+    private boolean dniEnUso(String dni) throws SQLException {
+        return clienteDao.findByDni(dni).isPresent();
     }
 
     private void validarDatosCliente(Cliente cliente){

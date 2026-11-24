@@ -8,7 +8,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.pizzeria.model.Cliente;
+import org.pizzeria.utils.EsquemaBaseDatos;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,7 +22,9 @@ class ClienteControllerTest {
     private ClienteController clienteController;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws SQLException {
+        // Los clientes se guardan en MySQL: cada test empieza con las tablas vacias (y los ids otra vez desde 1)
+        EsquemaBaseDatos.borrarYCrearTablas();
         clienteController = new ClienteController();
     }
 
@@ -42,7 +46,7 @@ class ClienteControllerTest {
 
         @Test
         @DisplayName("registra un cliente válido y le asigna un id autoincremental")
-        void registraClienteValido() throws ClienteYaExisteException {
+        void registraClienteValido() throws ClienteYaExisteException, SQLException {
             Cliente registrado = clienteController.registrar(clienteValido("ana@test.com"));
 
             assertEquals(1, registrado.getId());
@@ -52,7 +56,7 @@ class ClienteControllerTest {
 
         @Test
         @DisplayName("asigna ids incrementales a clientes sucesivos")
-        void asignaIdsIncrementales() throws ClienteYaExisteException {
+        void asignaIdsIncrementales() throws ClienteYaExisteException, SQLException {
             Cliente c1 = clienteController.registrar(clienteValido("uno@test.com"));
             Cliente c2 = clienteController.registrar(clienteValido("dos@test.com"));
 
@@ -62,7 +66,7 @@ class ClienteControllerTest {
 
         @Test
         @DisplayName("lanza ClienteYaExisteException si el email ya está registrado")
-        void rechazaEmailDuplicado() throws ClienteYaExisteException {
+        void rechazaEmailDuplicado() throws ClienteYaExisteException, SQLException {
             clienteController.registrar(clienteValido("dup@test.com"));
 
             assertThrows(ClienteYaExisteException.class,
@@ -71,7 +75,7 @@ class ClienteControllerTest {
 
         @Test
         @DisplayName("la comprobación de email duplicado ignora mayúsculas/minúsculas")
-        void emailDuplicadoEsCaseInsensitive() throws ClienteYaExisteException {
+        void emailDuplicadoEsCaseInsensitive() throws ClienteYaExisteException, SQLException {
             clienteController.registrar(clienteValido("Dup@Test.com"));
 
             assertThrows(ClienteYaExisteException.class,
@@ -80,7 +84,7 @@ class ClienteControllerTest {
 
         @Test
         @DisplayName("lanza ClienteYaExisteException si el DNI ya está registrado")
-        void rechazaDniDuplicado() throws ClienteYaExisteException {
+        void rechazaDniDuplicado() throws ClienteYaExisteException, SQLException {
             clienteController.registrar(clienteValido("ana@test.com", "12345678A"));
 
             assertThrows(ClienteYaExisteException.class,
@@ -90,7 +94,7 @@ class ClienteControllerTest {
 
         @Test
         @DisplayName("la comprobación de DNI duplicado ignora mayúsculas/minúsculas en la letra")
-        void dniDuplicadoEsCaseInsensitive() throws ClienteYaExisteException {
+        void dniDuplicadoEsCaseInsensitive() throws ClienteYaExisteException, SQLException {
             clienteController.registrar(clienteValido("ana@test.com", "12345678A"));
 
             assertThrows(ClienteYaExisteException.class,
@@ -149,6 +153,47 @@ class ClienteControllerTest {
                     () -> clienteController.registrar(null));
             assertEquals("El cliente no puede ser null", error.getMessage());
         }
+
+        @Test
+        @DisplayName("guarda en la base de datos todos los datos del cliente")
+        void guardaTodosLosDatos() throws ClienteYaExisteException, ClienteNoEncontradoException, SQLException {
+            Cliente registrado = clienteController.registrar(clienteValido("ana@test.com", "12345678A"));
+
+            // buscarPorId crea un objeto nuevo con lo que hay guardado en MySQL
+            Cliente leido = clienteController.buscarPorId(registrado.getId());
+
+            assertEquals("12345678A", leido.getDni());
+            assertEquals("Ana García", leido.getNombre());
+            assertEquals("Calle Falsa 123", leido.getDireccion());
+            assertEquals("600111222", leido.getTelefono());
+            assertEquals("ana@test.com", leido.getEmail());
+            assertEquals("password123", leido.getPassword());
+        }
+
+        @Test
+        @DisplayName("registra un cliente sin dirección ni teléfono, porque son opcionales")
+        void registraClienteSinDatosOpcionales() throws ClienteYaExisteException, ClienteNoEncontradoException, SQLException {
+            Cliente sinOpcionales = new Cliente(0, "12345678A", "Ana García", null, null, "ana@test.com", "password123");
+
+            Cliente leido = clienteController.buscarPorId(clienteController.registrar(sinOpcionales).getId());
+
+            assertNull(leido.getDireccion());
+            assertNull(leido.getTelefono());
+        }
+
+        @Test
+        @DisplayName("lanza IllegalStateException si el cliente ya tiene id, y no lo deja guardado")
+        void rechazaClienteQueYaTieneId() throws SQLException {
+            Cliente conId = new Cliente(5, "12345678A", "Ana García", "Calle Falsa 123",
+                    "600111222", "ana@test.com", "password123");
+
+            IllegalStateException error = assertThrows(IllegalStateException.class,
+                    () -> clienteController.registrar(conId));
+
+            assertEquals("El cliente ya tiene el id 5", error.getMessage());
+            assertEquals(5, conId.getId());
+            assertTrue(clienteController.listarTodos().isEmpty());
+        }
     }
 
     @Nested
@@ -156,13 +201,13 @@ class ClienteControllerTest {
     class Login {
 
         @BeforeEach
-        void registrarClientePrevio() throws ClienteYaExisteException {
+        void registrarClientePrevio() throws ClienteYaExisteException, SQLException {
             clienteController.registrar(clienteValido("ana@test.com"));
         }
 
         @Test
         @DisplayName("login correcto devuelve el cliente registrado")
-        void loginCorrecto() throws CredencialesInvalidasException {
+        void loginCorrecto() throws CredencialesInvalidasException, SQLException {
             Cliente logueado = clienteController.login("ana@test.com", "password123");
 
             assertEquals("ana@test.com", logueado.getEmail());
@@ -171,7 +216,7 @@ class ClienteControllerTest {
 
         @Test
         @DisplayName("login es case-insensitive para el email")
-        void loginEmailCaseInsensitive() throws CredencialesInvalidasException {
+        void loginEmailCaseInsensitive() throws CredencialesInvalidasException, SQLException {
             Cliente logueado = clienteController.login("ANA@TEST.COM", "password123");
             assertEquals("ana@test.com", logueado.getEmail());
         }
@@ -199,7 +244,7 @@ class ClienteControllerTest {
 
         @Test
         @DisplayName("buscarPorId encuentra un cliente existente")
-        void buscarPorIdExistente() throws ClienteYaExisteException, ClienteNoEncontradoException {
+        void buscarPorIdExistente() throws ClienteYaExisteException, ClienteNoEncontradoException, SQLException {
             Cliente registrado = clienteController.registrar(clienteValido("ana@test.com"));
 
             Cliente encontrado = clienteController.buscarPorId(registrado.getId());
@@ -217,7 +262,7 @@ class ClienteControllerTest {
 
         @Test
         @DisplayName("buscarPorEmail devuelve Optional con el cliente si existe")
-        void buscarPorEmailExistente() throws ClienteYaExisteException {
+        void buscarPorEmailExistente() throws ClienteYaExisteException, SQLException {
             clienteController.registrar(clienteValido("ana@test.com"));
 
             Optional<Cliente> resultado = clienteController.buscarPorEmail("ana@test.com");
@@ -228,9 +273,18 @@ class ClienteControllerTest {
 
         @Test
         @DisplayName("buscarPorEmail devuelve Optional vacío si no existe")
-        void buscarPorEmailInexistente() {
+        void buscarPorEmailInexistente() throws SQLException {
             Optional<Cliente> resultado = clienteController.buscarPorEmail("noexiste@test.com");
             assertFalse(resultado.isPresent());
+        }
+
+        @Test
+        @DisplayName("buscarPorEmail no se deja engañar por una inyección SQL: busca el texto tal cual")
+        void buscarPorEmailEvitaInyeccionSql() throws ClienteYaExisteException, SQLException {
+            clienteController.registrar(clienteValido("ana@test.com"));
+
+            // Si el email se pegara al SQL, quedaria WHERE email = '' OR '1'='1' y saldria Ana
+            assertTrue(clienteController.buscarPorEmail("' OR '1'='1").isEmpty());
         }
     }
 
@@ -240,7 +294,7 @@ class ClienteControllerTest {
 
         @Test
         @DisplayName("devuelve todos los clientes registrados")
-        void listaTodosLosClientes() throws ClienteYaExisteException {
+        void listaTodosLosClientes() throws ClienteYaExisteException, SQLException {
             clienteController.registrar(clienteValido("uno@test.com"));
             clienteController.registrar(clienteValido("dos@test.com"));
 
@@ -251,7 +305,7 @@ class ClienteControllerTest {
 
         @Test
         @DisplayName("devuelve una lista inmutable (no se puede modificar desde fuera)")
-        void listaEsInmutable() throws ClienteYaExisteException {
+        void listaEsInmutable() throws ClienteYaExisteException, SQLException {
             clienteController.registrar(clienteValido("uno@test.com"));
             List<Cliente> todos = clienteController.listarTodos();
 

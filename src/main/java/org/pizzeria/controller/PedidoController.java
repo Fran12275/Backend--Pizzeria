@@ -13,6 +13,7 @@ import org.pizzeria.utils.PedidoGsonUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -33,7 +34,7 @@ public class PedidoController {
     }
 
     public LineaPedido addLineaPedido(long clienteId, long productoId, int cantidad)
-            throws ProductoNoEncontradoException, ClienteNoEncontradoException {
+            throws ProductoNoEncontradoException, ClienteNoEncontradoException, SQLException {
         if (cantidad <= 0) { throw new IllegalArgumentException("La cantidad debe ser mayor que 0");}
         Cliente cliente = clienteController.buscarPorId(clienteId);
         Producto producto = productoController.buscarPorId(productoId);
@@ -63,7 +64,7 @@ public class PedidoController {
                 .orElseThrow(() -> new PedidoNoEncontradoException("No existe ningún pedido con id " + id));
     }
 
-    public List<Pedido> listarPorCliente(long clienteId) throws ClienteNoEncontradoException{
+    public List<Pedido> listarPorCliente(long clienteId) throws ClienteNoEncontradoException, SQLException{
         Cliente cliente = clienteController.buscarPorId(clienteId);
         return pedidos.stream()
                 .filter(p -> p.getCliente().equals(cliente))
