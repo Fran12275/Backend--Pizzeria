@@ -14,4 +14,10 @@ public interface Dao<T> {
     Optional<T> findById(long id) throws SQLException;
 
     List<T> findAll() throws SQLException;
+
+    // Guarda los datos actuales del objeto en la fila que tiene su id
+    void update(T entidad) throws SQLException;
+
+    // Para borrar basta con el id: no hace falta tener el objeto entero
+    void delete(long id) throws SQLException;
 }

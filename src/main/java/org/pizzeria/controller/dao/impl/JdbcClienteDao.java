@@ -21,6 +21,9 @@ public final class JdbcClienteDao implements ClienteDao {
     // Los datos siempre van como parametros "?" del PreparedStatement, nunca pegados al SQL: asi se evita la inyeccion SQL
     private static final String INSERT =
             "INSERT INTO cliente (dni, nombre, direccion, telefono, email, password) VALUES (?, ?, ?, ?, ?, ?)";
+    private static final String UPDATE =
+            "UPDATE cliente SET dni = ?, nombre = ?, direccion = ?, telefono = ?, email = ?, password = ? WHERE id = ?";
+    private static final String DELETE = "DELETE FROM cliente WHERE id = ?";
     private static final String SELECT_ALL = "SELECT id, dni, nombre, direccion, telefono, email, password FROM cliente";
     private static final String SELECT_BY_ID = SELECT_ALL + " WHERE id = ?";
     // MySQL compara los textos sin distinguir mayusculas (utf8mb4_0900_ai_ci): ANA@TEST.COM encuentra a ana@test.com
@@ -54,6 +57,27 @@ public final class JdbcClienteDao implements ClienteDao {
     @Override
     public List<Cliente> findAll() throws SQLException {
         return buscar(SELECT_ALL);
+    }
+
+    // Una sola sentencia: MySQL la hace entera o no la hace, asi que no hace falta transaccion
+    @Override
+    public void update(Cliente cliente) throws SQLException {
+        try (Connection conn = DatabaseConf.getConnection();
+             PreparedStatement ps = conn.prepareStatement(UPDATE)) {
+            asignarDatos(ps, cliente);
+            // El septimo "?" es el del WHERE: solo cambia la fila de este cliente
+            ps.setLong(7, cliente.getId());
+            ps.executeUpdate();
+        }
+    }
+
+    @Override
+    public void delete(long id) throws SQLException {
+        try (Connection conn = DatabaseConf.getConnection();
+             PreparedStatement ps = conn.prepareStatement(DELETE)) {
+            ps.setLong(1, id);
+            ps.executeUpdate();
+        }
     }
 
     @Override

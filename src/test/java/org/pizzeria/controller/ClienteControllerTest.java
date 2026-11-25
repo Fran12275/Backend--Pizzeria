@@ -11,6 +11,7 @@ import org.pizzeria.model.Cliente;
 import org.pizzeria.utils.EsquemaBaseDatos;
 
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.List;
 import java.util.Optional;
 
@@ -311,6 +312,88 @@ class ClienteControllerTest {
 
             assertThrows(UnsupportedOperationException.class,
                     () -> todos.add(clienteValido("intruso@test.com")));
+        }
+    }
+
+    @Nested
+    @DisplayName("actualizar()")
+    class Actualizar {
+
+        @Test
+        @DisplayName("guarda los datos nuevos del cliente y no toca a los demás")
+        void actualizaSoloEseCliente() throws ClienteYaExisteException, ClienteNoEncontradoException, SQLException {
+            Cliente ana = clienteController.registrar(clienteValido("ana@test.com"));
+            Cliente carlos = clienteController.registrar(clienteValido("carlos@test.com"));
+            Cliente anaMudada = new Cliente(ana.getId(), ana.getDni(), ana.getNombre(), "Calle Mayor 1",
+                    "699000111", ana.getEmail(), ana.getPassword());
+
+            clienteController.actualizar(anaMudada);
+
+            Cliente anaLeida = clienteController.buscarPorId(ana.getId());
+            assertEquals("Calle Mayor 1", anaLeida.getDireccion());
+            assertEquals("699000111", anaLeida.getTelefono());
+            assertEquals("Calle Falsa 123", clienteController.buscarPorId(carlos.getId()).getDireccion());
+        }
+
+        @Test
+        @DisplayName("lanza ClienteNoEncontradoException si el cliente no existe")
+        void rechazaClienteInexistente() {
+            Cliente inexistente = new Cliente(999, "12345678A", "Ana García", "Calle Falsa 123",
+                    "600111222", "ana@test.com", "password123");
+
+            ClienteNoEncontradoException error = assertThrows(ClienteNoEncontradoException.class,
+                    () -> clienteController.actualizar(inexistente));
+            assertEquals("No existe ningún cliente con id 999", error.getMessage());
+        }
+
+        @Test
+        @DisplayName("comprueba los datos obligatorios igual que registrar")
+        void rechazaDatoObligatorioVacio() throws ClienteYaExisteException, SQLException {
+            Cliente ana = clienteController.registrar(clienteValido("ana@test.com"));
+            Cliente sinEmail = new Cliente(ana.getId(), ana.getDni(), ana.getNombre(), ana.getDireccion(),
+                    ana.getTelefono(), "", ana.getPassword());
+
+            IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                    () -> clienteController.actualizar(sinEmail));
+            assertEquals("El email es un dato obligatorio", error.getMessage());
+        }
+
+        @Test
+        @DisplayName("no deja poner el email de otro cliente: lo impide el UNIQUE de la tabla")
+        void rechazaEmailDeOtroCliente() throws ClienteYaExisteException, ClienteNoEncontradoException, SQLException {
+            clienteController.registrar(clienteValido("ana@test.com"));
+            Cliente carlos = clienteController.registrar(clienteValido("carlos@test.com"));
+            Cliente carlosConEmailDeAna = new Cliente(carlos.getId(), carlos.getDni(), carlos.getNombre(),
+                    carlos.getDireccion(), carlos.getTelefono(), "ana@test.com", carlos.getPassword());
+
+            assertThrows(SQLIntegrityConstraintViolationException.class,
+                    () -> clienteController.actualizar(carlosConEmailDeAna));
+            assertEquals("carlos@test.com", clienteController.buscarPorId(carlos.getId()).getEmail());
+        }
+    }
+
+    @Nested
+    @DisplayName("eliminar()")
+    class Eliminar {
+
+        @Test
+        @DisplayName("borra el cliente de la base de datos y no toca a los demás")
+        void eliminaSoloEseCliente() throws ClienteYaExisteException, ClienteNoEncontradoException, SQLException {
+            Cliente ana = clienteController.registrar(clienteValido("ana@test.com"));
+            Cliente carlos = clienteController.registrar(clienteValido("carlos@test.com"));
+
+            clienteController.eliminar(ana.getId());
+
+            assertThrows(ClienteNoEncontradoException.class, () -> clienteController.buscarPorId(ana.getId()));
+            assertEquals(List.of(carlos), clienteController.listarTodos());
+        }
+
+        @Test
+        @DisplayName("lanza ClienteNoEncontradoException si el cliente no existe")
+        void rechazaClienteInexistente() {
+            ClienteNoEncontradoException error = assertThrows(ClienteNoEncontradoException.class,
+                    () -> clienteController.eliminar(999));
+            assertEquals("No existe ningún cliente con id 999", error.getMessage());
         }
     }
 

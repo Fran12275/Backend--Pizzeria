@@ -47,6 +47,18 @@ public class ClienteController {
     }
     public List<Cliente> listarTodos() throws SQLException { return clienteDao.findAll();}
 
+    public void actualizar(Cliente cliente) throws ClienteNoEncontradoException, SQLException {
+        validarDatosCliente(cliente);
+        // Solo se actualiza un cliente que ya existe: si no, ClienteNoEncontradoException
+        buscarPorId(cliente.getId());
+        clienteDao.update(cliente);
+    }
+
+    public void eliminar(long id) throws ClienteNoEncontradoException, SQLException {
+        buscarPorId(id);
+        clienteDao.delete(id);
+    }
+
     // La letra del DNI puede venir en mayuscula o minuscula: MySQL no las distingue, asi que 12345678a es el mismo DNI que 12345678A
     private boolean dniEnUso(String dni) throws SQLException {
         return clienteDao.findByDni(dni).isPresent();
