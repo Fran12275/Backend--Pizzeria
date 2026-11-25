@@ -144,7 +144,7 @@ class ProductoControllerTest {
         @Test
         @DisplayName("una pizza o una pasta no pueden tener ingredientes null")
         void rechazaIngredientesNull() {
-            Ingrediente tomate = new Ingrediente(1, "Tomate", 100, true);
+            Ingrediente tomate = new Ingrediente(1, "Tomate", 100);
             List<Ingrediente> conNull = Arrays.asList(tomate, null);
 
             assertThrows(IllegalArgumentException.class,
@@ -168,7 +168,7 @@ class ProductoControllerTest {
         @Test
         @DisplayName("no se puede añadir un ingrediente null a una pizza o a una pasta")
         void rechazaAnadirIngredienteNull() {
-            Ingrediente tomate = new Ingrediente(1, "Tomate", 100, true);
+            Ingrediente tomate = new Ingrediente(1, "Tomate", 100);
             Pizza pizza = new Pizza(0, "Margarita", 8.5, Size.MEDIANA, List.of(tomate));
             Pasta pasta = new Pasta(0, "Napolitana", 9.0, Size.GRANDE, List.of(tomate));
 
@@ -260,8 +260,8 @@ class ProductoControllerTest {
 
         private List<Ingrediente> ingredientesDeEjemplo() {
             return List.of(
-                    new Ingrediente(7, "Tomate", 100, true),
-                    new Ingrediente(8, "Mozzarella", 50, false));
+                    new Ingrediente(7, "Tomate", 100),
+                    new Ingrediente(8, "Mozzarella", 50));
         }
 
         @Test
@@ -276,11 +276,10 @@ class ProductoControllerTest {
             assertFalse(cabecera.contains("ID"));
             assertTrue(cabecera.contains("NOMBRE"));
             assertTrue(cabecera.contains("STOCK DISPONIBLE"));
-            assertTrue(cabecera.contains("VEGANO"));
         }
 
         @Test
-        @DisplayName("exportar e importar conserva nombre, stock y si es vegano; el id llega a 0")
+        @DisplayName("exportar e importar conserva nombre y stock; el id llega a 0")
         void exportarEImportarConservaLosDatos() throws IOException {
             productoController.exportarIngredientes(ingredientesDeEjemplo(), fichero);
 
@@ -292,7 +291,6 @@ class ProductoControllerTest {
                     .findFirst()
                     .orElseThrow();
             assertEquals(100, tomate.getStock());
-            assertTrue(tomate.isVegano());
             assertEquals(0, tomate.getId());
         }
 
@@ -318,7 +316,7 @@ class ProductoControllerTest {
         @Test
         @DisplayName("lanza IOException si el stock del CSV no es un número y dice en qué línea está")
         void importarCsvInvalido() throws IOException {
-            Files.writeString(fichero, "NOMBRE;STOCK DISPONIBLE;VEGANO\nTomate;mucho;true\n");
+            Files.writeString(fichero, "NOMBRE;STOCK DISPONIBLE\nTomate;mucho\n");
 
             IOException error = assertThrows(IOException.class, () -> productoController.importarIngredientes(fichero));
             assertTrue(error.getMessage().contains("linea 2"));
@@ -327,7 +325,7 @@ class ProductoControllerTest {
         @Test
         @DisplayName("lanza IOException si el CSV tiene unas comillas sin cerrar")
         void importarCsvConComillasSinCerrar() throws IOException {
-            Files.writeString(fichero, "NOMBRE;STOCK DISPONIBLE;VEGANO\n\"Tomate;100;true\n");
+            Files.writeString(fichero, "NOMBRE;STOCK DISPONIBLE\n\"Tomate;100\n");
 
             assertThrows(IOException.class, () -> productoController.importarIngredientes(fichero));
         }
@@ -357,10 +355,12 @@ class ProductoControllerTest {
         }
 
         private void agregarProductosDeEjemplo() {
-            Ingrediente tomate = new Ingrediente(7, "Tomate", 100, true);
-            Ingrediente queso = new Ingrediente(8, "Mozzarella", 50, false);
+            Ingrediente tomate = new Ingrediente(7, "Tomate", 100);
+            Ingrediente queso = new Ingrediente(8, "Mozzarella", 50);
             productoController.agregarProducto(new Pizza(0, "Margarita", 8.5, Size.MEDIANA, List.of(tomate, queso)));
-            productoController.agregarProducto(new Pasta(0, "Carbonara", 9.0, Size.GRANDE, List.of(queso)));
+            Pasta arrabbiata = new Pasta(0, "Arrabbiata", 9.0, Size.GRANDE, List.of(tomate));
+            arrabbiata.setVegano(true);
+            productoController.agregarProducto(arrabbiata);
             productoController.agregarProducto(new Bebida(0, "Agua", 1.5, Size.PEQUENYA));
         }
 
@@ -404,11 +404,12 @@ class ProductoControllerTest {
             assertEquals(2, ((Pizza) p1).getIngredientes().size());
             assertEquals("Tomate", ((Pizza) p1).getIngredientes().get(0).getNombre());
             assertEquals(100, ((Pizza) p1).getIngredientes().get(0).getStock());
-            assertTrue(((Pizza) p1).getIngredientes().get(0).isVegano());
+            assertFalse(((Pizza) p1).isVegano());
 
             Producto p2 = importados.get(1);
             assertTrue(p2 instanceof Pasta);
             assertEquals(1, ((Pasta) p2).getIngredientes().size());
+            assertTrue(((Pasta) p2).isVegano());
 
             Producto p3 = importados.get(2);
             assertTrue(p3 instanceof Bebida);
@@ -429,7 +430,7 @@ class ProductoControllerTest {
             importados.forEach(otroCatalogo::agregarProducto);
 
             assertEquals(3, otroCatalogo.listarTodos().size());
-            assertEquals("Carbonara", otroCatalogo.buscarPorId(2).getNombre());
+            assertEquals("Arrabbiata", otroCatalogo.buscarPorId(2).getNombre());
         }
 
         @Test
@@ -504,12 +505,12 @@ class ProductoControllerTest {
         @Test
         @DisplayName("dos ingredientes con el mismo id son iguales y tienen el mismo hashCode; con distinto id no")
         void ingredientesIgualesPorId() {
-            Ingrediente tomate = new Ingrediente(7, "Tomate", 100, true);
-            Ingrediente tomateSinStock = new Ingrediente(7, "Tomate", 0, true);
+            Ingrediente tomate = new Ingrediente(7, "Tomate", 100);
+            Ingrediente tomateSinStock = new Ingrediente(7, "Tomate", 0);
 
             assertEquals(tomate, tomateSinStock);
             assertEquals(tomate.hashCode(), tomateSinStock.hashCode());
-            assertNotEquals(tomate, new Ingrediente(8, "Tomate", 100, true));
+            assertNotEquals(tomate, new Ingrediente(8, "Tomate", 100));
         }
     }
 }

@@ -11,6 +11,8 @@ import java.util.Objects;
 public class Pizza extends Producto {
     private Size size;
     private final List<Ingrediente> ingredientes = new ArrayList<>();
+    // Por defecto false (no vegana): no va en el constructor y se cambia con setVegano
+    private boolean vegano;
 
     public Pizza(long id, String nombre, double precio, Size size, List<Ingrediente> ingredientes) {
         super(id, nombre, precio);
@@ -45,6 +47,14 @@ public class Pizza extends Producto {
 
     public void addIngrediente(Ingrediente ingrediente) {
         ingredientes.add(Objects.requireNonNull(ingrediente, "El ingrediente no puede ser null"));
+    }
+
+    public boolean isVegano() {
+        return vegano;
+    }
+
+    public void setVegano(boolean vegano) {
+        this.vegano = vegano;
     }
 
     @Override

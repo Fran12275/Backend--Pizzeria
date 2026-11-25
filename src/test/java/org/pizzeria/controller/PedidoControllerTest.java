@@ -56,8 +56,8 @@ class PedidoControllerTest {
         pedidoController = new PedidoController(clienteController, productoController);
 
         // Los productos de prueba los crea el test; el controlador no trae nada precargado.
-        Ingrediente tomate = new Ingrediente(1, "Tomate", 100, true);
-        Ingrediente mozzarella = new Ingrediente(2, "Mozzarella", 100, false);
+        Ingrediente tomate = new Ingrediente(1, "Tomate", 100);
+        Ingrediente mozzarella = new Ingrediente(2, "Mozzarella", 100);
         margaritaId = productoController.agregarProducto(
                 new Pizza(0, "Margarita", 8.5, Size.PEQUENYA, List.of(tomate, mozzarella))).getId();
         aguaId = productoController.agregarProducto(
