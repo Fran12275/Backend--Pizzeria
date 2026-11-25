@@ -1,12 +1,13 @@
 package org.pizzeria.model;
 
+import java.math.BigDecimal;
 import java.util.Locale;
 
 public class PagoConTarjeta implements Pagable{
 
     @Override
-    public void pagar(double cantidad) {
-        if (cantidad <= 0) {
+    public void pagar(BigDecimal cantidad) {
+        if (cantidad == null || cantidad.signum() <= 0) {
             throw new IllegalArgumentException("La cantidad a pagar debe ser mayor que 0");
         }
         // Formato de España: el importe sale con coma decimal (17,00 €) en cualquier ordenador

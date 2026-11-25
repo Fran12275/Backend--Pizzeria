@@ -2,7 +2,9 @@ package org.pizzeria.model.pedido;
 
 import org.pizzeria.model.Cliente;
 import org.pizzeria.model.Pagable;
+import org.pizzeria.model.product.Size;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -13,6 +15,8 @@ public class Pedido {
     private Date fecha;
     private EstadoPedido estado;
     private final List<LineaPedido> lineas = new ArrayList<>();
+    // Se le suma cada linea al anadirla, con el precio de ese momento: si despues cambia el precio, el total no
+    private BigDecimal precioTotal = BigDecimal.ZERO;
     // transient: Gson no puede crear una interfaz al importar, asi que se excluye del JSON
     private transient Pagable pagable;
     private final Cliente cliente;
@@ -27,19 +31,17 @@ public class Pedido {
         this.cliente = Objects.requireNonNull(cliente, "El cliente no puede ser null");
     }
 
-    public void agregarLinea(LineaPedido linea) {
+    // El tamano solo sirve para el precio: en pizzas y bebidas es obligatorio; en la pasta puede ser null
+    public void agregarLinea(LineaPedido linea, Size size) {
         if (linea == null) {
             throw new IllegalArgumentException("La línea de pedido no puede ser null");
         }
         comprobarQueEstaPendiente();
+        // Primero el importe: si el producto no se vende en ese tamano, lanza la excepcion y el pedido no cambia
+        BigDecimal importe = linea.getProducto().getPrecio(size).multiply(BigDecimal.valueOf(linea.getCantidad()));
         lineas.add(linea);
         linea.setPedido(this);
-    }
-
-    public double calcularPrecioTotal() {
-         return lineas.stream()
-                .mapToDouble(LineaPedido::getSubtotal)
-                .sum();
+        precioTotal = precioTotal.add(importe);
     }
 
     public void pagar(Pagable metodoPago) {
@@ -50,7 +52,7 @@ public class Pedido {
         if (lineas.isEmpty()) {
             throw new IllegalStateException("No se puede pagar un pedido sin líneas");
         }
-        metodoPago.pagar(calcularPrecioTotal());
+        metodoPago.pagar(precioTotal);
         // Solo se guarda el método de pago y se finaliza si el cobro ha ido bien
         this.pagable = metodoPago;
         this.estado = EstadoPedido.FINALIZADO;
@@ -79,6 +81,7 @@ public class Pedido {
     public void comprobarQueEstaCompleto() {
         comprobarQueExiste(fecha, "la fecha");
         comprobarQueExiste(estado, "el estado");
+        comprobarQueExiste(precioTotal, "el precio total");
         comprobarQueExiste(cliente, "el cliente");
         comprobarQueExiste(lineas, "la lista de líneas");
         comprobarLineas();
@@ -95,7 +98,7 @@ public class Pedido {
             LineaPedido linea = lineas.get(i);
             if (linea == null || !linea.tieneDatosValidos()) {
                 throw new IllegalStateException("La línea " + (i + 1) + " del pedido " + id
-                        + " está vacía o tiene una cantidad o un precio no válidos");
+                        + " está vacía o tiene una cantidad no válida");
             }
         }
     }
@@ -111,6 +114,10 @@ public class Pedido {
 
     public EstadoPedido getEstado() {
         return estado;
+    }
+
+    public BigDecimal getPrecioTotal() {
+        return precioTotal;
     }
 
     public List<LineaPedido> getLineas() {
@@ -131,7 +138,7 @@ public class Pedido {
         return "Pedido{" +
                 "id=" + id +
                 ", fecha=" + fecha +
-                ", precioTotal=" + calcularPrecioTotal() +
+                ", precioTotal=" + precioTotal +
                 ", estado=" + estado +
                 ", lineas=" + lineas.size() +
                 '}';

@@ -16,11 +16,13 @@ import org.pizzeria.model.product.Producto;
 import org.pizzeria.model.product.Size;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -35,7 +37,7 @@ class ProductoControllerTest {
     }
 
     private Producto bebida(String nombre, double precio) {
-        return new Bebida(0, nombre, precio, Size.PEQUENYA);
+        return new Bebida(0, nombre, Map.of(Size.PEQUENYA, BigDecimal.valueOf(precio)));
     }
 
     @Nested
@@ -133,12 +135,26 @@ class ProductoControllerTest {
         @Test
         @DisplayName("un producto no puede tener precio 0 ni negativo")
         void rechazaPrecioCeroONegativo() {
+            Ingrediente tomate = new Ingrediente(1, "Tomate", 100);
+
             assertThrows(IllegalArgumentException.class, () -> bebida("Gratis", 0.0));
             assertThrows(IllegalArgumentException.class, () -> bebida("Negativa", -1.0));
+            assertThrows(IllegalArgumentException.class,
+                    () -> new Pasta(0, "Gratis", BigDecimal.ZERO, List.of(tomate)));
+        }
 
-            Producto agua = bebida("Agua", 1.5);
-            assertThrows(IllegalArgumentException.class, () -> agua.setPrecio(0.0));
-            assertEquals(1.5, agua.getPrecio(), 0.001);
+        @Test
+        @DisplayName("una pizza o una bebida tienen que venderse al menos en un tamaño")
+        void rechazaConfiguracionesVacias() {
+            Ingrediente tomate = new Ingrediente(1, "Tomate", 100);
+
+            IllegalArgumentException errorPizza = assertThrows(IllegalArgumentException.class,
+                    () -> new Pizza(0, "Sin tamaños", Map.of(), List.of(tomate)));
+            IllegalArgumentException errorBebida = assertThrows(IllegalArgumentException.class,
+                    () -> new Bebida(0, "Sin tamaños", null));
+
+            assertEquals("Debe tener al menos un tamaño con su precio", errorPizza.getMessage());
+            assertEquals("Debe tener al menos un tamaño con su precio", errorBebida.getMessage());
         }
 
         @Test
@@ -148,18 +164,18 @@ class ProductoControllerTest {
             List<Ingrediente> conNull = Arrays.asList(tomate, null);
 
             assertThrows(IllegalArgumentException.class,
-                    () -> new Pizza(0, "Rota", 8.5, Size.MEDIANA, conNull));
+                    () -> new Pizza(0, "Rota", Map.of(Size.MEDIANA, new BigDecimal("8.50")), conNull));
             assertThrows(IllegalArgumentException.class,
-                    () -> new Pasta(0, "Rota", 9.0, Size.GRANDE, conNull));
+                    () -> new Pasta(0, "Rota", new BigDecimal("9.00"), conNull));
         }
 
         @Test
         @DisplayName("una pizza o una pasta deben tener al menos un ingrediente")
         void rechazaListaDeIngredientesVacia() {
             IllegalArgumentException errorPizza = assertThrows(IllegalArgumentException.class,
-                    () -> new Pizza(0, "Vacía", 8.5, Size.MEDIANA, List.of()));
+                    () -> new Pizza(0, "Vacía", Map.of(Size.MEDIANA, new BigDecimal("8.50")), List.of()));
             IllegalArgumentException errorPasta = assertThrows(IllegalArgumentException.class,
-                    () -> new Pasta(0, "Vacía", 9.0, Size.GRANDE, List.of()));
+                    () -> new Pasta(0, "Vacía", new BigDecimal("9.00"), List.of()));
 
             assertEquals("La pizza debe tener al menos un ingrediente", errorPizza.getMessage());
             assertEquals("La pasta debe tener al menos un ingrediente", errorPasta.getMessage());
@@ -169,8 +185,8 @@ class ProductoControllerTest {
         @DisplayName("no se puede añadir un ingrediente null a una pizza o a una pasta")
         void rechazaAnadirIngredienteNull() {
             Ingrediente tomate = new Ingrediente(1, "Tomate", 100);
-            Pizza pizza = new Pizza(0, "Margarita", 8.5, Size.MEDIANA, List.of(tomate));
-            Pasta pasta = new Pasta(0, "Napolitana", 9.0, Size.GRANDE, List.of(tomate));
+            Pizza pizza = new Pizza(0, "Margarita", Map.of(Size.MEDIANA, new BigDecimal("8.50")), List.of(tomate));
+            Pasta pasta = new Pasta(0, "Napolitana", new BigDecimal("9.00"), List.of(tomate));
 
             NullPointerException errorPizza = assertThrows(NullPointerException.class, () -> pizza.addIngrediente(null));
             NullPointerException errorPasta = assertThrows(NullPointerException.class, () -> pasta.addIngrediente(null));
@@ -189,20 +205,20 @@ class ProductoControllerTest {
         @DisplayName("sustituye el producto existente por el actualizado, conservando el id")
         void actualizaProductoExistente() throws ProductoNoEncontradoException {
             Producto original = productoController.agregarProducto(bebida("Agua", 1.5));
-            Producto actualizado = new Bebida(original.getId(), "Agua con gas", 1.8, Size.MEDIANA);
+            Producto actualizado = new Bebida(original.getId(), "Agua con gas", Map.of(Size.MEDIANA, new BigDecimal("1.80")));
 
             productoController.actualizarProducto(actualizado);
 
             Producto encontrado = productoController.buscarPorId(original.getId());
             assertEquals("Agua con gas", encontrado.getNombre());
-            assertEquals(1.8, encontrado.getPrecio(), 0.001);
+            assertEquals(new BigDecimal("1.80"), encontrado.getPrecio(Size.MEDIANA));
             assertEquals(1, productoController.listarTodos().size());
         }
 
         @Test
         @DisplayName("lanza ProductoNoEncontradoException si el producto no existe")
         void rechazaProductoInexistente() {
-            Producto inexistente = new Bebida(999, "Fantasma", 1.0, Size.PEQUENYA);
+            Producto inexistente = new Bebida(999, "Fantasma", Map.of(Size.PEQUENYA, new BigDecimal("1.00")));
 
             assertThrows(ProductoNoEncontradoException.class,
                     () -> productoController.actualizarProducto(inexistente));
@@ -357,11 +373,12 @@ class ProductoControllerTest {
         private void agregarProductosDeEjemplo() {
             Ingrediente tomate = new Ingrediente(7, "Tomate", 100);
             Ingrediente queso = new Ingrediente(8, "Mozzarella", 50);
-            productoController.agregarProducto(new Pizza(0, "Margarita", 8.5, Size.MEDIANA, List.of(tomate, queso)));
-            Pasta arrabbiata = new Pasta(0, "Arrabbiata", 9.0, Size.GRANDE, List.of(tomate));
+            productoController.agregarProducto(new Pizza(0, "Margarita",
+                    Map.of(Size.MEDIANA, new BigDecimal("8.50"), Size.GRANDE, new BigDecimal("11.00")), List.of(tomate, queso)));
+            Pasta arrabbiata = new Pasta(0, "Arrabbiata", new BigDecimal("9.00"), List.of(tomate));
             arrabbiata.setVegano(true);
             productoController.agregarProducto(arrabbiata);
-            productoController.agregarProducto(new Bebida(0, "Agua", 1.5, Size.PEQUENYA));
+            productoController.agregarProducto(new Bebida(0, "Agua", Map.of(Size.PEQUENYA, new BigDecimal("1.50"))));
         }
 
         @Test
@@ -399,8 +416,8 @@ class ProductoControllerTest {
             Producto p1 = importados.get(0);
             assertTrue(p1 instanceof Pizza);
             assertEquals("Margarita", p1.getNombre());
-            assertEquals(8.5, p1.getPrecio(), 0.001);
-            assertEquals(Size.MEDIANA, ((Pizza) p1).getSize());
+            assertEquals(Map.of(Size.MEDIANA, new BigDecimal("8.50"), Size.GRANDE, new BigDecimal("11.00")),
+                    ((Pizza) p1).getConfiguraciones());
             assertEquals(2, ((Pizza) p1).getIngredientes().size());
             assertEquals("Tomate", ((Pizza) p1).getIngredientes().get(0).getNombre());
             assertEquals(100, ((Pizza) p1).getIngredientes().get(0).getStock());
@@ -410,10 +427,12 @@ class ProductoControllerTest {
             assertTrue(p2 instanceof Pasta);
             assertEquals(1, ((Pasta) p2).getIngredientes().size());
             assertTrue(((Pasta) p2).isVegano());
+            assertEquals(new BigDecimal("9.00"), ((Pasta) p2).getPrecio());
 
             Producto p3 = importados.get(2);
             assertTrue(p3 instanceof Bebida);
             assertEquals("Agua", p3.getNombre());
+            assertEquals(Map.of(Size.PEQUENYA, new BigDecimal("1.50")), ((Bebida) p3).getConfiguraciones());
         }
 
         @Test
@@ -480,7 +499,7 @@ class ProductoControllerTest {
         @Test
         @DisplayName("lanza IOException si la lista contiene un producto null y dice en qué posición está")
         void importarListaConProductoNull() throws IOException {
-            Files.writeString(fichero, "[{\"tipo\":\"bebida\",\"nombre\":\"Agua\",\"precio\":1.5,\"size\":\"PEQUENYA\"}, null]");
+            Files.writeString(fichero, "[{\"tipo\":\"bebida\",\"nombre\":\"Agua\",\"configuraciones\":{\"PEQUENYA\":1.50}}, null]");
 
             IOException error = assertThrows(IOException.class, () -> productoController.importarProductos(fichero));
             assertTrue(error.getMessage().contains("posicion 2"));
@@ -494,12 +513,12 @@ class ProductoControllerTest {
         @Test
         @DisplayName("dos productos con el mismo id son iguales y tienen el mismo hashCode; con distinto id no")
         void productosIgualesPorId() {
-            Producto agua = new Bebida(5, "Agua", 1.5, Size.PEQUENYA);
-            Producto aguaConGas = new Bebida(5, "Agua con gas", 1.8, Size.MEDIANA);
+            Producto agua = new Bebida(5, "Agua", Map.of(Size.PEQUENYA, new BigDecimal("1.50")));
+            Producto aguaConGas = new Bebida(5, "Agua con gas", Map.of(Size.MEDIANA, new BigDecimal("1.80")));
 
             assertEquals(agua, aguaConGas);
             assertEquals(agua.hashCode(), aguaConGas.hashCode());
-            assertNotEquals(agua, new Bebida(6, "Agua", 1.5, Size.PEQUENYA));
+            assertNotEquals(agua, new Bebida(6, "Agua", Map.of(Size.PEQUENYA, new BigDecimal("1.50"))));
         }
 
         @Test

@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import java.math.BigDecimal;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Objects;
 
 @JsonTypeInfo(
@@ -21,27 +24,50 @@ public abstract class Producto {
     @JsonIgnore
     private long id;
     private String nombre;
-    private double precio;
 
-    protected Producto(long id, String nombre, double precio){
-        validarPrecio(precio);
+    protected Producto(long id, String nombre){
         this.id = id;
         this.nombre = nombre;
-        this.precio = precio;
     }
 
+    // Precio de una unidad en ese tamano: lo usa el pedido al anadir una linea.
+    // Pizza y Bebida lo buscan en sus configuraciones; la pasta no tiene tamano y siempre cuesta lo mismo
+    public abstract BigDecimal getPrecio(Size size);
 
-    public double getPrecio() { return this.precio; }
-    public void setPrecio(double precio) {
-        validarPrecio(precio);
-        this.precio = precio;
-    }
-
-    // Misma regla al crear el producto y al cambiarle el precio: siempre mayor que 0
-    private static void validarPrecio(double precio) {
-        if (precio <= 0) {
+    // Misma regla para todos los precios: obligatorio y mayor que 0
+    protected static BigDecimal validarPrecio(BigDecimal precio) {
+        if (precio == null || precio.signum() <= 0) {
             throw new IllegalArgumentException("El precio debe ser mayor que 0");
         }
+        return precio;
+    }
+
+    // Pizza y Bebida: al menos un tamano, ningun tamano null y cada precio mayor que 0.
+    // Se copia en un EnumMap: quien paso el mapa ya no puede cambiarlo y los tamanos quedan en orden
+    protected static Map<Size, BigDecimal> copiarConfiguraciones(Map<Size, BigDecimal> configuraciones) {
+        if (configuraciones == null || configuraciones.isEmpty()) {
+            throw new IllegalArgumentException("Debe tener al menos un tamaño con su precio");
+        }
+        Map<Size, BigDecimal> copia = new EnumMap<>(Size.class);
+        for (Map.Entry<Size, BigDecimal> configuracion : configuraciones.entrySet()) {
+            if (configuracion.getKey() == null) {
+                throw new IllegalArgumentException("Ningún tamaño puede ser null");
+            }
+            copia.put(configuracion.getKey(), validarPrecio(configuracion.getValue()));
+        }
+        return copia;
+    }
+
+    // Pizza y Bebida: hay que indicar un tamano y que se venda en el
+    protected BigDecimal precioSegunTamanyo(Map<Size, BigDecimal> configuraciones, Size size) {
+        if (size == null) {
+            throw new IllegalArgumentException(getTipo() + " " + nombre + " necesita un tamaño");
+        }
+        BigDecimal precio = configuraciones.get(size);
+        if (precio == null) {
+            throw new IllegalArgumentException(getTipo() + " " + nombre + " no se vende en tamaño " + size);
+        }
+        return precio;
     }
 
 
@@ -92,7 +118,6 @@ public abstract class Producto {
         return getTipo() + "{" +
                 "id=" + id +
                 ", nombre='" + nombre + '\'' +
-                ", precio=" + precio +
                 '}';
     }
 }

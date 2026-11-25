@@ -7,11 +7,8 @@ import java.util.Objects;
 public class LineaPedido {
     private long id;
     private int cantidad;
-    private long productoId;
-    // Precio del producto al crear la linea: si despues cambia, el pedido no se ve afectado
-    private double precioUnitario;
     // transient: el pedido crearia un bucle (Pedido -> lineas -> pedido) y Producto es abstracta.
-    // Por eso en las lineas importadas producto es null: el producto se identifica por productoId
+    // Por eso las lineas importadas llegan sin producto
     private transient Pedido pedido;
     private transient Producto producto;
 
@@ -26,17 +23,11 @@ public class LineaPedido {
         }
         this.cantidad = cantidad;
         this.id = id;
-        this.productoId = producto.getId();
-        this.precioUnitario = producto.getPrecio();
-    }
-
-    public double getSubtotal(){
-        return this.precioUnitario * this.cantidad;
     }
 
     // Gson crea la linea sin pasar por el constructor: al importar se comprueba que sus datos sean validos
     boolean tieneDatosValidos() {
-        return cantidad > 0 && precioUnitario > 0;
+        return cantidad > 0;
     }
 
 
@@ -47,10 +38,6 @@ public class LineaPedido {
     public long getId() {return id;}
 
     public int getCantidad() {return cantidad;}
-
-    public long getProductoId() {return productoId;}
-
-    public double getPrecioUnitario() {return precioUnitario;}
 
     public Producto getProducto() {return producto;}
 }

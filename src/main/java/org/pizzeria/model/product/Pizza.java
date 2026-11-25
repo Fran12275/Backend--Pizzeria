@@ -3,20 +3,24 @@ package org.pizzeria.model.product;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 
 public class Pizza extends Producto {
-    private Size size;
+    // Precio de cada tamano en el que se vende
+    private final Map<Size, BigDecimal> configuraciones;
     private final List<Ingrediente> ingredientes = new ArrayList<>();
     // Por defecto false (no vegana): no va en el constructor y se cambia con setVegano
     private boolean vegano;
 
-    public Pizza(long id, String nombre, double precio, Size size, List<Ingrediente> ingredientes) {
-        super(id, nombre, precio);
-        this.size = size;
+    public Pizza(long id, String nombre, Map<Size, BigDecimal> configuraciones, List<Ingrediente> ingredientes) {
+        super(id, nombre);
+        this.configuraciones = copiarConfiguraciones(configuraciones);
         if (ingredientes == null || ingredientes.isEmpty()) {
             throw new IllegalArgumentException("La pizza debe tener al menos un ingrediente");
         }
@@ -27,18 +31,18 @@ public class Pizza extends Producto {
     }
     @JsonCreator
     public Pizza(@JsonProperty("nombre") String nombre,
-                 @JsonProperty("precio") double precio,
-                 @JsonProperty("size") Size size,
+                 @JsonProperty("configuraciones") Map<Size, BigDecimal> configuraciones,
                  @JsonProperty("ingredientes") List<Ingrediente> ingredientes) {
-        this(0, nombre, precio, size, ingredientes);
+        this(0, nombre, configuraciones, ingredientes);
     }
 
-    public Size getSize() {
-        return size;
+    public Map<Size, BigDecimal> getConfiguraciones() {
+        return Collections.unmodifiableMap(configuraciones);
     }
 
-    public void setSize(Size size) {
-        this.size = size;
+    @Override
+    public BigDecimal getPrecio(Size size) {
+        return precioSegunTamanyo(configuraciones, size);
     }
 
     public List<Ingrediente> getIngredientes() {

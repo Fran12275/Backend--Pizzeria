@@ -9,6 +9,7 @@ import org.pizzeria.model.pedido.LineaPedido;
 import org.pizzeria.model.Pagable;
 import org.pizzeria.model.pedido.Pedido;
 import org.pizzeria.model.product.Producto;
+import org.pizzeria.model.product.Size;
 import org.pizzeria.utils.PedidoGsonUtils;
 
 import java.io.IOException;
@@ -33,7 +34,8 @@ public class PedidoController {
         this.productoController = productoController;
     }
 
-    public LineaPedido addLineaPedido(long clienteId, long productoId, int cantidad)
+    // Anadir al carrito: producto, cantidad y tamano. El tamano solo sirve para el precio (en la pasta puede ser null)
+    public LineaPedido addLineaPedido(long clienteId, long productoId, int cantidad, Size size)
             throws ProductoNoEncontradoException, ClienteNoEncontradoException, SQLException {
         if (cantidad <= 0) { throw new IllegalArgumentException("La cantidad debe ser mayor que 0");}
         Cliente cliente = clienteController.buscarPorId(clienteId);
@@ -43,7 +45,8 @@ public class PedidoController {
                 .orElseGet(() -> crearPedido(cliente));
 
         LineaPedido linea = new LineaPedido(secuenciaLineaId.getAndIncrement(), cantidad, producto);
-        pedido.agregarLinea(linea);
+        pedido.agregarLinea(linea, size);
+        guardarSiEsNuevo(pedido);
         return linea;
     }
     private Optional<Pedido> buscarPedidoPendiente(Cliente cliente){
@@ -53,9 +56,13 @@ public class PedidoController {
                 .findFirst();
     }
     private Pedido crearPedido(Cliente cliente){
-        Pedido pedido = new Pedido(secuenciaPedidoId.getAndIncrement(), new Date(), cliente);
-        pedidos.add(pedido);
-        return pedido;
+        return new Pedido(secuenciaPedidoId.getAndIncrement(), new Date(), cliente);
+    }
+    // Un pedido nuevo solo se guarda cuando ya tiene su primera linea: si el tamano no valia, no queda un pedido vacio
+    private void guardarSiEsNuevo(Pedido pedido){
+        if (!pedidos.contains(pedido)) {
+            pedidos.add(pedido);
+        }
     }
     public Pedido buscarPorId(long id) throws PedidoNoEncontradoException {
         return pedidos.stream()

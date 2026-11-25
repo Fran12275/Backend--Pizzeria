@@ -3,27 +3,32 @@ package org.pizzeria.model.product;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Bebida extends Producto {
-    private Size size;
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.Map;
 
-    public Bebida(long id, String nombre, double precio, Size size) {
-        super(id, nombre, precio);
-        this.size = size;
+public class Bebida extends Producto {
+    // Precio de cada tamano en el que se vende
+    private final Map<Size, BigDecimal> configuraciones;
+
+    public Bebida(long id, String nombre, Map<Size, BigDecimal> configuraciones) {
+        super(id, nombre);
+        this.configuraciones = copiarConfiguraciones(configuraciones);
     }
 
     @JsonCreator
     public Bebida(@JsonProperty("nombre") String nombre,
-                  @JsonProperty("precio") double precio,
-                  @JsonProperty("size") Size size) {
-        this(0, nombre, precio, size);
+                  @JsonProperty("configuraciones") Map<Size, BigDecimal> configuraciones) {
+        this(0, nombre, configuraciones);
     }
 
-    public Size getSize() {
-        return size;
+    public Map<Size, BigDecimal> getConfiguraciones() {
+        return Collections.unmodifiableMap(configuraciones);
     }
 
-    public void setSize(Size size) {
-        this.size = size;
+    @Override
+    public BigDecimal getPrecio(Size size) {
+        return precioSegunTamanyo(configuraciones, size);
     }
 
     @Override

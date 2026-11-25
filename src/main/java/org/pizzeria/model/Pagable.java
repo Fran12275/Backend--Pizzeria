@@ -1,7 +1,9 @@
 package org.pizzeria.model;
 
+import java.math.BigDecimal;
+
 public interface Pagable {
 
-    void pagar(double cantidad);
+    void pagar(BigDecimal cantidad);
 }
 
