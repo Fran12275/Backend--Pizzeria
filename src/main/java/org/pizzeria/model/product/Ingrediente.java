@@ -1,4 +1,4 @@
-package org.pizzeria.model;
+package org.pizzeria.model.product;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;

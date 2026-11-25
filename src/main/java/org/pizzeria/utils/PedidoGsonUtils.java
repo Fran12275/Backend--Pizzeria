@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
-import org.pizzeria.model.Pedido;
+import org.pizzeria.model.pedido.Pedido;
 
 import java.io.IOException;
 import java.io.Reader;

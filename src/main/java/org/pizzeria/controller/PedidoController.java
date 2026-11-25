@@ -4,11 +4,11 @@ import org.pizzeria.exception.ClienteNoEncontradoException;
 import org.pizzeria.exception.PedidoNoEncontradoException;
 import org.pizzeria.exception.ProductoNoEncontradoException;
 import org.pizzeria.model.Cliente;
-import org.pizzeria.model.EstadoPedido;
-import org.pizzeria.model.LineaPedido;
+import org.pizzeria.model.pedido.EstadoPedido;
+import org.pizzeria.model.pedido.LineaPedido;
 import org.pizzeria.model.Pagable;
-import org.pizzeria.model.Pedido;
-import org.pizzeria.model.Producto;
+import org.pizzeria.model.pedido.Pedido;
+import org.pizzeria.model.product.Producto;
 import org.pizzeria.utils.PedidoGsonUtils;
 
 import java.io.IOException;

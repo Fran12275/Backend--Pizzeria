@@ -8,12 +8,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.pizzeria.model.Bebida;
-import org.pizzeria.model.Ingrediente;
-import org.pizzeria.model.Pasta;
-import org.pizzeria.model.Pizza;
-import org.pizzeria.model.Producto;
-import org.pizzeria.model.Size;
+import org.pizzeria.model.product.Bebida;
+import org.pizzeria.model.product.Ingrediente;
+import org.pizzeria.model.product.Pasta;
+import org.pizzeria.model.product.Pizza;
+import org.pizzeria.model.product.Producto;
+import org.pizzeria.model.product.Size;
 
 import java.io.IOException;
 import java.nio.file.Files;

@@ -1,4 +1,4 @@
-package org.pizzeria.model;
+package org.pizzeria.model.product;
 
 public enum Size {
     PEQUENYA,

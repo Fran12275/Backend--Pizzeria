@@ -7,7 +7,7 @@ import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
-import org.pizzeria.model.Ingrediente;
+import org.pizzeria.model.product.Ingrediente;
 
 import java.io.IOException;
 import java.io.Reader;

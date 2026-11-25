@@ -1,4 +1,6 @@
-package org.pizzeria.model;
+package org.pizzeria.model.pedido;
+
+import org.pizzeria.model.product.Producto;
 
 import java.util.Objects;
 

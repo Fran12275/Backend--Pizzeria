@@ -3,7 +3,7 @@ package org.pizzeria.utils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.pizzeria.model.Producto;
+import org.pizzeria.model.product.Producto;
 
 import java.io.IOException;
 import java.nio.file.Path;

@@ -1,8 +1,8 @@
 package org.pizzeria.controller;
 
 import org.pizzeria.exception.ProductoNoEncontradoException;
-import org.pizzeria.model.Ingrediente;
-import org.pizzeria.model.Producto;
+import org.pizzeria.model.product.Ingrediente;
+import org.pizzeria.model.product.Producto;
 import org.pizzeria.utils.IngredienteCsvUtils;
 import org.pizzeria.utils.ProductoJsonUtils;
 

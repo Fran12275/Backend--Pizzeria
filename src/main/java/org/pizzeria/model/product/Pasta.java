@@ -1,4 +1,4 @@
-package org.pizzeria.model;
+package org.pizzeria.model.product;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Pasta extends Producto{
+public class Pasta extends Producto {
     private Size size;
     private final List<Ingrediente> ingredientes = new ArrayList<>();
 

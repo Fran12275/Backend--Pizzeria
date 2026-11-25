@@ -1,4 +1,7 @@
-package org.pizzeria.model;
+package org.pizzeria.model.pedido;
+
+import org.pizzeria.model.Cliente;
+import org.pizzeria.model.Pagable;
 
 import java.util.ArrayList;
 import java.util.Date;
