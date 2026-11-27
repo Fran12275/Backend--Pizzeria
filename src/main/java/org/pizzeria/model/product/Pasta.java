@@ -36,9 +36,14 @@ public class Pasta extends Producto {
 
     public BigDecimal getPrecio() {return precio;}
 
-    // Sin tamano: cuesta lo mismo se pida como se pida
+    // Sin tamano: pedirla con uno es un error, no se ignora
     @Override
-    public BigDecimal getPrecio(Size size) {return precio;}
+    public BigDecimal getPrecio(Size size) {
+        if (size != null) {
+            throw new IllegalArgumentException("Pasta " + getNombre() + " no se vende por tamaños");
+        }
+        return precio;
+    }
 
     public List<Ingrediente> getIngredientes()  {return List.copyOf(ingredientes);}
     public void addIngrediente(Ingrediente ingrediente) {ingredientes.add(Objects.requireNonNull(ingrediente, "El ingrediente no puede ser null"));}

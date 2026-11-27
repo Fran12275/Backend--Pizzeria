@@ -205,7 +205,7 @@ class PedidoControllerTest {
         }
 
         @Test
-        @DisplayName("una pasta no necesita tamaño: cuesta lo mismo se pida como se pida")
+        @DisplayName("una pasta se pide sin tamaño y cuesta su precio único")
         void pastaSinTamanyo() throws Exception {
             Ingrediente tomate = new Ingrediente(1, "Tomate", 100);
             long arrabbiataId = productoController.agregarProducto(
@@ -215,6 +215,20 @@ class PedidoControllerTest {
 
             assertTrue(linea.getSize().isEmpty());
             assertEquals(new BigDecimal("18.00"), linea.getPedido().getPrecioTotal());
+        }
+
+        @Test
+        @DisplayName("una pasta pedida con tamaño se rechaza y no crea pedido")
+        void pastaConTamanyoSeRechaza() throws Exception {
+            Ingrediente tomate = new Ingrediente(1, "Tomate", 100);
+            long arrabbiataId = productoController.agregarProducto(
+                    new Pasta(0, "Arrabbiata", new BigDecimal("9.00"), List.of(tomate))).getId();
+
+            IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                    () -> pedidoController.addLineaPedido(clienteId, arrabbiataId, 2, Size.GRANDE));
+
+            assertEquals("Pasta Arrabbiata no se vende por tamaños", error.getMessage());
+            assertTrue(pedidoController.listarPorCliente(clienteId).isEmpty());
         }
 
         @Test
