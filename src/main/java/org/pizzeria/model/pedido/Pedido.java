@@ -2,7 +2,6 @@ package org.pizzeria.model.pedido;
 
 import org.pizzeria.model.Cliente;
 import org.pizzeria.model.Pagable;
-import org.pizzeria.model.product.Size;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -31,17 +30,15 @@ public class Pedido {
         this.cliente = Objects.requireNonNull(cliente, "El cliente no puede ser null");
     }
 
-    // El tamano solo sirve para el precio: en pizzas y bebidas es obligatorio; en la pasta puede ser null
-    public void agregarLinea(LineaPedido linea, Size size) {
+    // La linea ya trae su precio (el del tamano elegido): el pedido solo suma su subtotal al total
+    public void agregarLinea(LineaPedido linea) {
         if (linea == null) {
             throw new IllegalArgumentException("La línea de pedido no puede ser null");
         }
         comprobarQueEstaPendiente();
-        // Primero el importe: si el producto no se vende en ese tamano, lanza la excepcion y el pedido no cambia
-        BigDecimal importe = linea.getProducto().getPrecio(size).multiply(BigDecimal.valueOf(linea.getCantidad()));
         lineas.add(linea);
         linea.setPedido(this);
-        precioTotal = precioTotal.add(importe);
+        precioTotal = precioTotal.add(linea.getSubtotal());
     }
 
     public void pagar(Pagable metodoPago) {
@@ -98,7 +95,7 @@ public class Pedido {
             LineaPedido linea = lineas.get(i);
             if (linea == null || !linea.tieneDatosValidos()) {
                 throw new IllegalStateException("La línea " + (i + 1) + " del pedido " + id
-                        + " está vacía o tiene una cantidad no válida");
+                        + " está vacía o tiene una cantidad o un precio no válidos");
             }
         }
     }

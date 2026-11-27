@@ -44,8 +44,8 @@ public class PedidoController {
         Pedido pedido = buscarPedidoPendiente(cliente)
                 .orElseGet(() -> crearPedido(cliente));
 
-        LineaPedido linea = new LineaPedido(secuenciaLineaId.getAndIncrement(), cantidad, producto);
-        pedido.agregarLinea(linea, size);
+        LineaPedido linea = new LineaPedido(secuenciaLineaId.getAndIncrement(), cantidad, producto, size);
+        pedido.agregarLinea(linea);
         guardarSiEsNuevo(pedido);
         return linea;
     }

@@ -107,6 +107,15 @@ class PedidoControllerTest {
         }
 
         @Test
+        @DisplayName("la línea guarda el precio del tamaño elegido y su subtotal")
+        void lineaGuardaPrecioDelTamanyoElegido() throws Exception {
+            LineaPedido linea = pedidoController.addLineaPedido(clienteId, margaritaId, 2, Size.GRANDE);
+
+            assertEquals(new BigDecimal("12.00"), linea.getPrecioUnitario());
+            assertEquals(new BigDecimal("24.00"), linea.getSubtotal());
+        }
+
+        @Test
         @DisplayName("las listas que devuelven getLineas() y listarPorCliente() no se pueden modificar desde fuera")
         void listasDevueltasSonInmutables() throws Exception {
             Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1, Size.PEQUENYA).getPedido();
@@ -264,8 +273,8 @@ class PedidoControllerTest {
         void lineaConCantidadNoPositivaSeRechaza() {
             Bebida agua = new Bebida(0, "Agua", Map.of(Size.PEQUENYA, new BigDecimal("1.50")));
 
-            assertThrows(IllegalArgumentException.class, () -> new LineaPedido(1, 0, agua));
-            assertThrows(IllegalArgumentException.class, () -> new LineaPedido(1, -5, agua));
+            assertThrows(IllegalArgumentException.class, () -> new LineaPedido(1, 0, agua, Size.PEQUENYA));
+            assertThrows(IllegalArgumentException.class, () -> new LineaPedido(1, -5, agua, Size.PEQUENYA));
         }
 
         @Test
@@ -273,7 +282,7 @@ class PedidoControllerTest {
         void rechazaLineaNull() throws Exception {
             Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1, Size.PEQUENYA).getPedido();
 
-            IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> pedido.agregarLinea(null, Size.PEQUENYA));
+            IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> pedido.agregarLinea(null));
             assertEquals("La línea de pedido no puede ser null", error.getMessage());
         }
 
@@ -327,9 +336,9 @@ class PedidoControllerTest {
         void pedidoPagadoNoAdmiteLineas() throws Exception {
             Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1, Size.PEQUENYA).getPedido();
             pedidoController.pagarPedido(pedido.getId(), new PagableFalso());
-            LineaPedido extra = new LineaPedido(99, 1, new Bebida(0, "Cola", Map.of(Size.PEQUENYA, new BigDecimal("2.00"))));
+            LineaPedido extra = new LineaPedido(99, 1, new Bebida(0, "Cola", Map.of(Size.PEQUENYA, new BigDecimal("2.00"))), Size.PEQUENYA);
 
-            assertThrows(IllegalStateException.class, () -> pedido.agregarLinea(extra, Size.PEQUENYA));
+            assertThrows(IllegalStateException.class, () -> pedido.agregarLinea(extra));
             assertEquals(1, pedido.getLineas().size());
         }
 
@@ -385,7 +394,7 @@ class PedidoControllerTest {
 
             assertThrows(IllegalStateException.class,
                     () -> pedido.agregarLinea(new LineaPedido(99, 1, new Bebida(0, "Cola",
-                            Map.of(Size.PEQUENYA, new BigDecimal("2.00")))), Size.PEQUENYA));
+                            Map.of(Size.PEQUENYA, new BigDecimal("2.00"))), Size.PEQUENYA)));
             assertThrows(IllegalStateException.class, () -> pedidoController.pagarPedido(pedido.getId(), pagable));
             assertNull(pagable.cantidadCobrada);
         }
@@ -518,6 +527,7 @@ class PedidoControllerTest {
                 assertFalse(linea.getAsJsonObject().has("producto"));
                 assertFalse(linea.getAsJsonObject().has("pedido"));
                 assertTrue(linea.getAsJsonObject().has("cantidad"));
+                assertTrue(linea.getAsJsonObject().has("precioUnitario"));
             }
         }
 
@@ -538,6 +548,7 @@ class PedidoControllerTest {
             assertNull(pedido.getPagable());
             assertEquals(2, pedido.getLineas().size());
             assertEquals(2, pedido.getLineas().get(0).getCantidad());
+            assertEquals(new BigDecimal("8.50"), pedido.getLineas().get(0).getPrecioUnitario());
             assertNull(pedido.getLineas().get(0).getProducto());
             assertSame(pedido, pedido.getLineas().get(0).getPedido());
             assertEquals(1, pedidoController.listarTodos().size());
@@ -601,6 +612,15 @@ class PedidoControllerTest {
         @DisplayName("lanza IOException si una línea tiene cantidad 0")
         void importarPedidoConLineaDeCantidadCero() throws Exception {
             exportarYEstropear(pedido -> pedido.getAsJsonArray("lineas").get(0).getAsJsonObject().addProperty("cantidad", 0));
+
+            IOException error = assertThrows(IOException.class, () -> pedidoController.importarPedidos(fichero));
+            assertTrue(error.getMessage().contains("línea 1"));
+        }
+
+        @Test
+        @DisplayName("lanza IOException si a una línea le falta el precio")
+        void importarPedidoConLineaSinPrecio() throws Exception {
+            exportarYEstropear(pedido -> pedido.getAsJsonArray("lineas").get(0).getAsJsonObject().remove("precioUnitario"));
 
             IOException error = assertThrows(IOException.class, () -> pedidoController.importarPedidos(fichero));
             assertTrue(error.getMessage().contains("línea 1"));
