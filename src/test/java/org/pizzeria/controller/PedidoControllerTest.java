@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.pizzeria.exception.ClienteNoEncontradoException;
 import org.pizzeria.exception.ClienteYaExisteException;
+import org.pizzeria.exception.LineaPedidoNoEncontradaException;
 import org.pizzeria.exception.PedidoNoEncontradoException;
 import org.pizzeria.exception.ProductoNoEncontradoException;
 import org.pizzeria.model.product.Bebida;
@@ -308,6 +309,86 @@ class PedidoControllerTest {
         void pedidoSinClienteSeRechaza() {
             NullPointerException error = assertThrows(NullPointerException.class, () -> new Pedido(1, new Date(), null));
             assertEquals("El cliente no puede ser null", error.getMessage());
+        }
+    }
+
+    @Nested
+    @DisplayName("quitarLineaPedido()")
+    class QuitarLineaPedido {
+
+        @Test
+        @DisplayName("quita la línea del pedido y resta su subtotal del total")
+        void quitaLaLineaYRestaSuSubtotal() throws Exception {
+            LineaPedido margaritas = pedidoController.addLineaPedido(clienteId, margaritaId, 2, Size.PEQUENYA); // 8.50 € x2
+            Pedido pedido = pedidoController.addLineaPedido(clienteId, aguaId, 1, Size.PEQUENYA).getPedido();  // 1.50 €
+
+            pedidoController.quitarLineaPedido(pedido.getId(), margaritas.getId());
+
+            assertEquals(1, pedido.getLineas().size());
+            assertEquals(new BigDecimal("1.50"), pedido.getPrecioTotal());
+            assertNull(margaritas.getPedido());
+        }
+
+        @Test
+        @DisplayName("quitar la última línea deja el pedido pendiente y vacío, y la siguiente línea va a ese mismo pedido")
+        void quitarLaUltimaLineaDejaElPedidoVacio() throws Exception {
+            LineaPedido linea = pedidoController.addLineaPedido(clienteId, margaritaId, 1, Size.PEQUENYA);
+            Pedido pedido = linea.getPedido();
+
+            pedidoController.quitarLineaPedido(pedido.getId(), linea.getId());
+
+            assertTrue(pedido.getLineas().isEmpty());
+            assertEquals(0, pedido.getPrecioTotal().signum());
+            assertEquals(EstadoPedido.PENDIENTE, pedido.getEstado());
+            assertSame(pedido, pedidoController.addLineaPedido(clienteId, aguaId, 1, Size.PEQUENYA).getPedido());
+        }
+
+        @Test
+        @DisplayName("lanza LineaPedidoNoEncontradaException si el pedido no tiene esa línea, y el pedido no cambia")
+        void rechazaLineaInexistente() throws Exception {
+            Pedido pedido = pedidoController.addLineaPedido(clienteId, margaritaId, 1, Size.PEQUENYA).getPedido();
+
+            LineaPedidoNoEncontradaException error = assertThrows(LineaPedidoNoEncontradaException.class,
+                    () -> pedidoController.quitarLineaPedido(pedido.getId(), 999));
+
+            assertEquals("El pedido " + pedido.getId() + " no tiene ninguna línea con id 999", error.getMessage());
+            assertEquals(1, pedido.getLineas().size());
+            assertEquals(new BigDecimal("8.50"), pedido.getPrecioTotal());
+        }
+
+        @Test
+        @DisplayName("lanza PedidoNoEncontradoException si el pedido no existe")
+        void rechazaPedidoInexistente() {
+            assertThrows(PedidoNoEncontradoException.class, () -> pedidoController.quitarLineaPedido(999, 1));
+        }
+
+        @Test
+        @DisplayName("un pedido ya pagado no deja quitar líneas ni cambia su total")
+        void pedidoPagadoNoDejaQuitarLineas() throws Exception {
+            LineaPedido linea = pedidoController.addLineaPedido(clienteId, margaritaId, 1, Size.PEQUENYA);
+            Pedido pedido = linea.getPedido();
+            pedidoController.pagarPedido(pedido.getId(), new PagableFalso());
+
+            assertThrows(IllegalStateException.class, () -> pedidoController.quitarLineaPedido(pedido.getId(), linea.getId()));
+            assertEquals(1, pedido.getLineas().size());
+            assertEquals(new BigDecimal("8.50"), pedido.getPrecioTotal());
+        }
+
+        @Test
+        @DisplayName("un pedido no deja quitar una línea null ni una línea de otro pedido")
+        void rechazaLineaNullYLineaDeOtroPedido() throws Exception {
+            Cliente otro = clienteController.registrar(new Cliente(0, "87654321B", "Carlos Ruiz",
+                    "Calle Otra 456", "600333444", "carlos@test.com", "password456"));
+            Pedido deAna = pedidoController.addLineaPedido(clienteId, margaritaId, 1, Size.PEQUENYA).getPedido();
+            LineaPedido deCarlos = pedidoController.addLineaPedido(otro.getId(), aguaId, 1, Size.PEQUENYA);
+
+            IllegalArgumentException errorNull = assertThrows(IllegalArgumentException.class, () -> deAna.quitarLinea(null));
+            IllegalArgumentException errorAjena = assertThrows(IllegalArgumentException.class, () -> deAna.quitarLinea(deCarlos));
+
+            assertEquals("La línea de pedido no puede ser null", errorNull.getMessage());
+            assertEquals("La línea " + deCarlos.getId() + " no es del pedido " + deAna.getId(), errorAjena.getMessage());
+            assertEquals(new BigDecimal("8.50"), deAna.getPrecioTotal());
+            assertSame(deCarlos.getPedido(), pedidoController.listarPorCliente(otro.getId()).get(0));
         }
     }
 

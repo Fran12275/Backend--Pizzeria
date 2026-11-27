@@ -1,6 +1,7 @@
 package org.pizzeria.controller;
 
 import org.pizzeria.exception.ClienteNoEncontradoException;
+import org.pizzeria.exception.LineaPedidoNoEncontradaException;
 import org.pizzeria.exception.PedidoNoEncontradoException;
 import org.pizzeria.exception.ProductoNoEncontradoException;
 import org.pizzeria.model.Cliente;
@@ -79,6 +80,16 @@ public class PedidoController {
     }
 
     public List<Pedido> listarTodos() { return List.copyOf(pedidos);}
+
+    // Quitar del carrito: solo en un pedido pendiente, y su subtotal se resta del total
+    public void quitarLineaPedido(long pedidoId, long lineaId)
+            throws PedidoNoEncontradoException, LineaPedidoNoEncontradaException {
+        Pedido pedido = buscarPorId(pedidoId);
+        LineaPedido linea = pedido.buscarLinea(lineaId)
+                .orElseThrow(() -> new LineaPedidoNoEncontradaException(
+                        "El pedido " + pedidoId + " no tiene ninguna línea con id " + lineaId));
+        pedido.quitarLinea(linea);
+    }
 
     public void pagarPedido(long pedidoId, Pagable metodoPago) throws PedidoNoEncontradoException {
         Pedido pedido = buscarPorId(pedidoId);

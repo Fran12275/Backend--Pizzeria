@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class Pedido {
     private long id;
@@ -39,6 +40,25 @@ public class Pedido {
         lineas.add(linea);
         linea.setPedido(this);
         precioTotal = precioTotal.add(linea.getSubtotal());
+    }
+
+    // Se resta el mismo subtotal que se sumo al anadirla: el total sigue cuadrando aunque cambie el catalogo
+    public void quitarLinea(LineaPedido linea) {
+        if (linea == null) {
+            throw new IllegalArgumentException("La línea de pedido no puede ser null");
+        }
+        comprobarQueEstaPendiente();
+        if (!lineas.remove(linea)) {
+            throw new IllegalArgumentException("La línea " + linea.getId() + " no es del pedido " + id);
+        }
+        linea.setPedido(null);
+        precioTotal = precioTotal.subtract(linea.getSubtotal());
+    }
+
+    public Optional<LineaPedido> buscarLinea(long lineaId) {
+        return lineas.stream()
+                .filter(linea -> linea.getId() == lineaId)
+                .findFirst();
     }
 
     public void pagar(Pagable metodoPago) {
