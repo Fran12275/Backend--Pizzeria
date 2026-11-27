@@ -38,6 +38,7 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -107,10 +108,11 @@ class PedidoControllerTest {
         }
 
         @Test
-        @DisplayName("la línea guarda el precio del tamaño elegido y su subtotal")
-        void lineaGuardaPrecioDelTamanyoElegido() throws Exception {
+        @DisplayName("la línea guarda el tamaño elegido, su precio y su subtotal")
+        void lineaGuardaTamanyoYPrecioElegidos() throws Exception {
             LineaPedido linea = pedidoController.addLineaPedido(clienteId, margaritaId, 2, Size.GRANDE);
 
+            assertEquals(Optional.of(Size.GRANDE), linea.getSize());
             assertEquals(new BigDecimal("12.00"), linea.getPrecioUnitario());
             assertEquals(new BigDecimal("24.00"), linea.getSubtotal());
         }
@@ -209,9 +211,10 @@ class PedidoControllerTest {
             long arrabbiataId = productoController.agregarProducto(
                     new Pasta(0, "Arrabbiata", new BigDecimal("9.00"), List.of(tomate))).getId();
 
-            Pedido pedido = pedidoController.addLineaPedido(clienteId, arrabbiataId, 2, null).getPedido();
+            LineaPedido linea = pedidoController.addLineaPedido(clienteId, arrabbiataId, 2, null);
 
-            assertEquals(new BigDecimal("18.00"), pedido.getPrecioTotal());
+            assertTrue(linea.getSize().isEmpty());
+            assertEquals(new BigDecimal("18.00"), linea.getPedido().getPrecioTotal());
         }
 
         @Test
@@ -528,6 +531,7 @@ class PedidoControllerTest {
                 assertFalse(linea.getAsJsonObject().has("pedido"));
                 assertTrue(linea.getAsJsonObject().has("cantidad"));
                 assertTrue(linea.getAsJsonObject().has("precioUnitario"));
+                assertTrue(linea.getAsJsonObject().has("size"));
             }
         }
 
@@ -549,6 +553,7 @@ class PedidoControllerTest {
             assertEquals(2, pedido.getLineas().size());
             assertEquals(2, pedido.getLineas().get(0).getCantidad());
             assertEquals(new BigDecimal("8.50"), pedido.getLineas().get(0).getPrecioUnitario());
+            assertEquals(Optional.of(Size.PEQUENYA), pedido.getLineas().get(0).getSize());
             assertNull(pedido.getLineas().get(0).getProducto());
             assertSame(pedido, pedido.getLineas().get(0).getPedido());
             assertEquals(1, pedidoController.listarTodos().size());

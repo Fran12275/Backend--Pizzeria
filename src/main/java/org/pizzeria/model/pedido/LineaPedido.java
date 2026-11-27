@@ -5,10 +5,13 @@ import org.pizzeria.model.product.Size;
 
 import java.math.BigDecimal;
 import java.util.Objects;
+import java.util.Optional;
 
 public class LineaPedido {
     private long id;
     private int cantidad;
+    // Tamano elegido al pedirla: null en los productos que no tienen tamano (la pasta)
+    private Size size;
     // Precio de una unidad al pedirla: si despues cambia en el catalogo, la linea no. Sirve para quitarla del total
     private BigDecimal precioUnitario;
     // transient: el pedido crearia un bucle (Pedido -> lineas -> pedido) y Producto es abstracta.
@@ -20,13 +23,14 @@ public class LineaPedido {
     private LineaPedido(){
 
     }
-    // El tamano solo sirve para buscar el precio (en la pasta puede ser null): si no se vende en ese tamano, no se crea
+    // En la pasta el tamano es null. Si el producto no se vende en ese tamano, la linea no se crea
     public LineaPedido(long id, int cantidad, Producto producto, Size size) {
         this.producto = Objects.requireNonNull(producto, "El producto no puede ser null");
         if (cantidad <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor que 0");
         }
         this.precioUnitario = producto.getPrecio(size);
+        this.size = size;
         this.cantidad = cantidad;
         this.id = id;
     }
@@ -44,6 +48,9 @@ public class LineaPedido {
     public long getId() {return id;}
 
     public int getCantidad() {return cantidad;}
+
+    // Optional y no null: quien lo usa no puede olvidarse de que la pasta no tiene tamano
+    public Optional<Size> getSize() {return Optional.ofNullable(size);}
 
     public BigDecimal getPrecioUnitario() {return precioUnitario;}
 

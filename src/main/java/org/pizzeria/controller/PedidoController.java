@@ -34,7 +34,7 @@ public class PedidoController {
         this.productoController = productoController;
     }
 
-    // Anadir al carrito: producto, cantidad y tamano. El tamano solo sirve para el precio (en la pasta puede ser null)
+    // Anadir al carrito: producto, cantidad y tamano. La linea guarda el tamano y su precio (en la pasta, null)
     public LineaPedido addLineaPedido(long clienteId, long productoId, int cantidad, Size size)
             throws ProductoNoEncontradoException, ClienteNoEncontradoException, SQLException {
         if (cantidad <= 0) { throw new IllegalArgumentException("La cantidad debe ser mayor que 0");}
